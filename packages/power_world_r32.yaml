@@ -660,17 +660,8 @@ modbus:
 
 
 
-    switches:
-      - name: U-Energy on/off
-        slave: 1
-        address: 0x0000
-        write_type: holding
-        command_on: 65  
-        command_off: 64
-        verify:
-          address: 0x0000
-          state_on: 65
-          state_off: 64
+    # The on/off switch is a template switch in the template: section below,
+    # so that only bit 0 of register 0 is ever changed.
 
 
 
@@ -1073,7 +1064,7 @@ input_number:
   cooling_set_temperature:
     icon: mdi:snowflake
     max: 30
-    min: 12
+    min: 7
     mode: slider
     name: Cooling Temperature
     step: 1
@@ -1096,7 +1087,7 @@ input_number:
     unit_of_measurement: "\xB0C"
   heating_set_temperature:
     icon: mdi:heat-wave
-    max: 55
+    max: 50
     min: 15
     mode: slider
     name: Heating Temperature
@@ -1104,7 +1095,7 @@ input_number:
     unit_of_measurement: "\xB0C"
   hot_water_set_temperature:
     icon: mdi:shower-head
-    max: 55
+    max: 60
     min: 28
     mode: slider
     name: Hot Water Temperature
@@ -1884,6 +1875,49 @@ template:
           EVU_signal: "{% if states('sensor.status_check') | int(0) | bitwise_and(32) %}off{% else %}on{% endif %}"
           SG_signal: "{% if states('sensor.status_check') | int(0) | bitwise_and(64) %}off{% else %}on{% endif %}"
           bit7: "{% if states('sensor.status_check') | int(0) | bitwise_and(128) %}on{% else %}off{% endif %}"
+
+  # Heat pump power (register 0x0000, bit 0). The same register also holds the
+  # A41, manual frequency, C01, B01 and A45 settings, so the switch reads the
+  # current value, changes bit 0 only, and writes only when the register has been
+  # read and the value really changes (the memory chip wears with every write).
+  - switch:
+      - name: "U-Energy on/off"
+        unique_id: u_energy_on_off
+        icon: mdi:power
+        availability: "{{ states('sensor.parameter_flags_1') | is_number }}"
+        state: "{{ states('sensor.parameter_flags_1') | int(0) | bitwise_and(1) > 0 }}"
+        turn_on:
+          - variables:
+              current: "{{ states('sensor.parameter_flags_1') | int(-1) }}"
+          - if:
+              - condition: template
+                value_template: "{{ current >= 0 and current | bitwise_and(1) == 0 }}"
+            then:
+              - action: modbus.write_register
+                data:
+                  hub: ultimate
+                  unit: 1
+                  address: 0
+                  value: "{{ current + 1 }}"
+              - action: homeassistant.update_entity
+                target:
+                  entity_id: sensor.parameter_flags_1
+        turn_off:
+          - variables:
+              current: "{{ states('sensor.parameter_flags_1') | int(-1) }}"
+          - if:
+              - condition: template
+                value_template: "{{ current >= 0 and current | bitwise_and(1) == 1 }}"
+            then:
+              - action: modbus.write_register
+                data:
+                  hub: ultimate
+                  unit: 1
+                  address: 0
+                  value: "{{ current - 1 }}"
+              - action: homeassistant.update_entity
+                target:
+                  entity_id: sensor.parameter_flags_1
 
 automation:
   - id: ultimate_handle_setpoint_temperature_change
