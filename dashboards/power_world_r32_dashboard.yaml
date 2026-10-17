@@ -1,0 +1,813 @@
+# Power World R32 air-water heat pump — dashboard
+# See README.md, step 5. Requires card-mod, multiple-logbook-card and
+# history-explorer-card from HACS.
+views:
+  - type: panel
+    path: ''
+    cards:
+      - type: custom:mod-card
+        card:
+          type: picture-elements
+          image: /local/power_world_r32/heat_pump.png
+          style:
+            max-width: 100vw
+            max-height: 100vh
+            object-fit: contain
+          elements:
+            - type: state-label
+              entity: sensor.water_outlet_temperature
+              prefix: 'Water Out: '
+              style:
+                left: 80%
+                top: 60%
+                color: black
+                transform: translate(-100%, -50%) scale(1, 1)
+                font-size: var(--font-size)
+            - type: state-label
+              entity: sensor.water_inlet_temperature
+              prefix: 'Water In: '
+              style:
+                left: 80%
+                top: 65%
+                color: black
+                transform: translate(-100%, -50%) scale(1, 1)
+                font-size: var(--font-size)
+            - type: state-label
+              entity: sensor.actual_frequency
+              prefix: 'Frequency: '
+              style:
+                left: 80%
+                top: 75%
+                transform: translate(-100%, -50%) scale(1, 1)
+                color: black
+                font-size: var(--font-size)
+            - type: state-label
+              entity: sensor.water_tank_temperature
+              prefix: 'Tank temp: '
+              style:
+                left: 80%
+                top: 70%
+                color: black
+                transform: translate(-100%, -50%) scale(1, 1)
+                font-size: var(--font-size)
+            - type: state-label
+              entity: sensor.ambient_temperature
+              style:
+                left: 49%
+                top: 15%
+                color: black
+                transform: translate(-40%, -50%) scale(1, 1)
+                font-size: var(--font-size)
+            - type: state-label
+              entity: input_select.work_mode
+              style:
+                left: 46%
+                top: 60%
+                color: black
+                transform: translate(-100%, -50%) scale(1, 1)
+                font-size: var(--font-size)
+            - type: state-label
+              entity: input_select.operation_mode
+              style:
+                left: 46%
+                top: 65%
+                color: black
+                transform: translate(-100%, -50%) scale(1, 1)
+                font-size: var(--font-size)
+            - type: conditional
+              conditions:
+                - entity: sensor.work_mode
+                  state: '1'
+              elements:
+                - type: state-label
+                  entity: input_number.heating_set_temperature
+                  prefix: 'Heating set: '
+                  style:
+                    left: 46%
+                    top: 70%
+                    color: black
+                    transform: translate(-100%, -50%) scale(1, 1)
+                    font-size: var(--font-size)
+            - type: conditional
+              conditions:
+                - entity: sensor.work_mode
+                  state: '3'
+              elements:
+                - type: state-label
+                  entity: input_number.heating_set_temperature
+                  prefix: 'Heating set: '
+                  style:
+                    left: 46%
+                    top: 70%
+                    color: black
+                    transform: translate(-100%, -50%) scale(1, 1)
+                    font-size: var(--font-size)
+            - type: conditional
+              conditions:
+                - entity: sensor.work_mode
+                  state: '0'
+              elements:
+                - type: state-label
+                  entity: input_number.hot_water_set_temperature
+                  prefix: 'DHW set: '
+                  style:
+                    left: 46%
+                    top: 75%
+                    color: black
+                    transform: translate(-100%, -50%) scale(1, 1)
+                    font-size: var(--font-size)
+            - type: conditional
+              conditions:
+                - entity: sensor.work_mode
+                  state: '3'
+              elements:
+                - type: state-label
+                  entity: input_number.hot_water_set_temperature
+                  prefix: 'DHW set: '
+                  style:
+                    left: 46%
+                    top: 75%
+                    color: black
+                    transform: translate(-100%, -50%) scale(1, 1)
+                    font-size: var(--font-size)
+            - type: conditional
+              conditions:
+                - entity: sensor.work_mode
+                  state: '4'
+              elements:
+                - type: state-label
+                  entity: input_number.hot_water_set_temperature
+                  prefix: 'DHW set: '
+                  style:
+                    left: 46%
+                    top: 75%
+                    color: black
+                    transform: translate(-100%, -50%) scale(1, 1)
+                    font-size: var(--font-size)
+            - type: conditional
+              conditions:
+                - entity: sensor.work_mode
+                  state: '2'
+              elements:
+                - type: state-label
+                  entity: input_number.cooling_set_temperature
+                  prefix: 'Cooling set: '
+                  style:
+                    left: 46%
+                    top: 80%
+                    color: black
+                    transform: translate(-100%, -50%) scale(1, 1)
+                    font-size: var(--font-size)
+            - type: conditional
+              conditions:
+                - entity: sensor.work_mode
+                  state: '4'
+              elements:
+                - type: state-label
+                  entity: input_number.cooling_set_temperature
+                  prefix: 'Cooling set: '
+                  style:
+                    left: 46%
+                    top: 80%
+                    color: black
+                    transform: translate(-100%, -50%) scale(1, 1)
+                    font-size: var(--font-size)
+            - type: conditional
+              conditions:
+                - entity: binary_sensor.level_1_anti_freeze
+                  state: 'on'
+              elements:
+                - type: state-icon
+                  entity: binary_sensor.level_1_anti_freeze
+                  style:
+                    left: 85%
+                    top: 20%
+                    color: black
+                    transform: translate(-40%, -40%) scale(4vh, 4vh)
+            - entity: input_boolean.vacation_mode
+              type: state-icon
+              style:
+                left: 85%
+                top: 13%
+                transform: translate(-40%, -40%) scale(4vh, 4vh)
+            - type: state-icon
+              entity: binary_sensor.heating
+              icon: mdi:weather-sunny
+              style:
+                top: 83%
+                left: 30%
+                transform: translate(-50%, -50%) scale(4vh, 4vh)
+            - type: state-icon
+              entity: binary_sensor.domestic_hot_water
+              icon: mdi:shower-head
+              style:
+                top: 83%
+                left: 40%
+                transform: translate(-50%, -50%) scale(4vh, 4vh)
+            - type: state-icon
+              entity: binary_sensor.defrosting
+              icon: mdi:snowflake-melt
+              style:
+                left: 50%
+                top: 83%
+                transform: translate(-50%, -50%) scale(4vh, 4vh)
+            - type: state-icon
+              entity: binary_sensor.compressor
+              icon: mdi:engine
+              style:
+                left: 60%
+                top: 83%
+                transform: translate(-50%, -50%) scale(4vh, 4vh)
+            - type: state-icon
+              entity: binary_sensor.fans
+              icon: mdi:fan
+              style:
+                left: 70%
+                top: 83%
+                transform: translate(-50%, -50%) scale(4vh, 4vh)
+            - type: conditional
+              conditions:
+                - entity: binary_sensor.heat_pump_fault
+                  state: 'on'
+              elements:
+                - type: state-label
+                  entity: binary_sensor.heat_pump_fault
+                  attribute: latest
+                  style:
+                    left: 50%
+                    top: 90%
+                    color: red
+                    transform: translate(-50%, -50%) scale(1, 1)
+        card_mod:
+          style: >
+            ha-card {
+              position: relative;
+              max-width: 1024px;  # Maximum width for large screens
+              max-height: 1024px;  # Maximum height for large screens
+              --font-size: 1.2rem;  # Default font size
+              overflow: hidden;  # Hide scrollbars on the card
+            }
+
+
+            .element {
+              position: absolute;
+            }
+
+
+            @media (orientation: landscape) {
+              ha-card {
+                --font-size: 1.2rem;
+              }
+            }
+
+
+            @media (orientation: portrait) {
+              ha-card {
+                --font-size: 0.8rem;
+              }
+            }
+
+
+            @media (max-width: 600px) {
+              ha-card {
+                --font-size: 0.8rem;  # Font size for small screens
+              }
+            }
+
+
+            /* Fullscreen or Kiosk mode on small screens (width <= 600px) */
+
+
+            @media (min-width: 0px) and (max-width: 600px) and (display-mode:
+            fullscreen), (min-width: 0px) and (max-width: 600px) and (display-mode: standalone) {
+              ha-card {
+                width: 100vw;  # Set width to the viewport width
+                height: 100vh;  # Set height to the viewport height
+                max-width: 100vw;  # Ensure max-width is 100% of the viewport width
+                max-height: 100vh;  # Ensure max-height is 100% of the viewport height
+              }
+              img {
+                width: 100vw;  # Set image width to 100% of viewport width
+                height: 100vh;  # Set image height to 100% of viewport height
+                object-fit: contain;  # Ensures image fits without distortion
+              }
+            }
+
+
+            /* Hide Scrollbars for the entire page */
+
+            html, body {
+              overflow: hidden;  # Disable scrolling for the whole page
+              margin: 0;  # Remove margin to ensure full usage of the screen
+              padding: 0;  # Remove padding to ensure full usage of the screen
+            }
+
+
+            /* Additional rule for the page container to remove scrollbars */
+
+            .content {
+              overflow: hidden !important;  # Ensure no scrollbars on the container
+            }
+    title: Overview
+  - title: Details
+    cards:
+      - type: entities
+        entities:
+          - entity: sensor.ambient_temperature
+          - entity: sensor.water_tank_temperature
+          - entity: sensor.compressor_current
+          - entity: sensor.fan_1_speed
+          - entity: sensor.fan_2_speed
+          - entity: sensor.water_inlet_temperature
+          - entity: sensor.water_outlet_temperature
+          - entity: sensor.actual_frequency
+          - entity: input_number.hot_water_set_temperature
+          - entity: input_number.heating_set_temperature
+          - entity: input_number.cooling_set_temperature
+          - entity: input_number.heating_temperature_diff
+          - entity: input_number.dhw_temperature_diff
+          - entity: input_select.work_mode
+          - entity: binary_sensor.compressor
+          - entity: sensor.3_way_valve
+          - entity: binary_sensor.defrosting
+          - entity: input_number.vacation_set_temperature
+          - entity: input_select.operation_mode
+          - entity: switch.u_energy_on_off
+          - entity: binary_sensor.linkage_switch
+          - entity: binary_sensor.evu_signal
+          - entity: binary_sensor.sg_signal
+          - entity: input_boolean.vacation_mode
+        title: U-Energy
+        show_header_toggle: false
+      - type: entities
+        entities:
+          - entity: sensor.evaporator_coil_temp
+          - entity: sensor.exhaust_gas_temp
+          - entity: sensor.cooling_coil_temp
+          - entity: sensor.four_way_valve
+          - entity: sensor.aux_eheating
+          - entity: sensor.water_pump
+          - entity: sensor.water_tank_eheating
+          - entity: binary_sensor.fans
+          - entity: sensor.opening_of_main_expansion_valve
+          - entity: sensor.opening_of_auxiliary_expansion_valve
+          - entity: sensor.reduced_frequency
+          - entity: sensor.a01_main_expansion_valve_action_cycle
+          - entity: sensor.a14_heating_main_valve_initial_opening_00
+          - entity: sensor.a39_defrost_main_expansion_valve_opening
+          - entity: sensor.b40_auxiliary_valve_opening_during_cooling
+          - entity: sensor.b39_auxiliary_valve_opening_during_defrosting
+          - entity: sensor.auxiliary_electronic_expansion_valve
+          - entity: sensor.c03_high_pressure_protection_value_reserved
+          - entity: sensor.c05_low_pressure_protection_value_reserved
+          - entity: sensor.c06_low_pressure_protection_value
+          - entity: sensor.c04_high_pressure_recovery_value_reserved
+          - entity: sensor.f8_minimum_rotation_speed_of_dc_waterpump
+          - entity: sensor.f9_water_pump_adjustment_rotation_speed
+          - entity: sensor.p9_defrosting_frequency
+          - entity: sensor.p10_defrosting_period
+          - entity: sensor.p11_defrosting_enter_temp
+          - entity: sensor.p12_defrosting_time
+          - entity: sensor.p13_defrosting_exit_temp
+          - entity: >-
+              sensor.p14_defrosting_environment_and_evaporator_coil_temp_difference_2
+          - entity: >-
+              sensor.p15_defrosting_environment_and_evaporator_coil_temp_difference_2
+          - entity: sensor.p16_ambient_temp_for_defrosting
+          - entity: sensor.heating_target_temp_adjustment
+        title: More Information
+      - type: entities
+        entities:
+          - entity: binary_sensor.level_1_anti_freeze
+          - entity: binary_sensor.secondary_anti_freeze
+          - entity: binary_sensor.high_pressure_switch
+          - entity: binary_sensor.water_flow_switch
+          - entity: binary_sensor.low_pressure_switch
+          - entity: binary_sensor.er03_water_flow_failure
+          - entity: binary_sensor.er05_high_pressure_fault
+          - entity: binary_sensor.er06_low_pressure_fault
+          - entity: >-
+              binary_sensor.er10_frequency_conversion_module_communication_failure
+          - entity: binary_sensor.er12_exhaust_temp_too_high
+          - entity: binary_sensor.er14_water_tank_temp_sensor_fault
+          - entity: binary_sensor.er15_water_inlet_temp_sensor_fault
+          - entity: binary_sensor.er16_evaporator_coil_temp_sensor_fault
+          - entity: binary_sensor.er18_exhaust_temp_fault
+          - entity: binary_sensor.er21_ambiet_temp_sensor_fault
+          - entity: >-
+              binary_sensor.er23_cooling_outlet_water_temp_supercooling_protection
+          - entity: binary_sensor.er27_outlet_water_temp_sensor_fault
+          - entity: binary_sensor.er29_return_gas_temp_sensor_fault
+          - entity: binary_sensor.er32_overheating_water_outlet
+          - entity: binary_sensor.er33_coil_temp_too_high
+          - entity: binary_sensor.er42_cooling_coil_temp_sensor_failure
+          - entity: binary_sensor.er64_dc_fan_1_fault
+          - entity: binary_sensor.er69_too_low_pressure_protection
+          - entity: binary_sensor.ipm_overcurrent
+          - entity: binary_sensor.press_syncronization_abnormality
+          - entity: binary_sensor.press_output_phase_loss
+          - entity: binary_sensor.dc_bus_voltage_is_low
+          - entity: binary_sensor.dc_bus_voltage_is_high
+          - entity: binary_sensor.the_heat_sink_temperature_is_too_high
+          - entity: binary_sensor.heat_sink_temperature_failure
+          - entity: binary_sensor.communication_failure
+          - entity: binary_sensor.ac_input_phase_loss
+          - entity: binary_sensor.ac_input_overcurrent
+          - entity: binary_sensor.ac_input_voltage_is_low
+          - entity: binary_sensor.high_voltage_fault
+          - entity: binary_sensor.ipm_temperature_is_too_high
+          - entity: binary_sensor.the_peak_current_of_the_press_is_too_high
+          - entity: binary_sensor.pfc_module_over_temperature
+        title: Status
+    type: masonry
+  - title: Error log
+    path: error-log
+    cards:
+      - type: custom:multiple-logbook-card
+        alias: Error log
+        hours_to_show: 87600
+        date_format: DD.MM.YYYY HH:mm:ss
+        group_by_day: true
+        show:
+          state: true
+          duration: true
+          start_date: true
+          end_date: true
+          icon: true
+          separator: true
+          entity_name: true
+        hidden_state:
+          - 'off'
+          - OK
+          - unavailable
+          - Cleared
+          - unknown
+        title: Logbook
+        entities:
+          - entity: binary_sensor.secondary_anti_freeze
+            hidden_state:
+              - 'off'
+              - OK
+              - unavailable
+              - unknown
+              - Cleared
+          - entity: binary_sensor.high_pressure_switch
+            hidden_state:
+              - 'off'
+              - OK
+              - unavailable
+              - unknown
+              - Cleared
+          - entity: binary_sensor.water_flow_switch
+            hidden_state:
+              - 'off'
+              - OK
+              - unavailable
+              - unknown
+              - Cleared
+          - entity: binary_sensor.er03_water_flow_failure
+            hidden_state:
+              - 'off'
+              - OK
+              - unavailable
+              - unknown
+              - Cleared
+          - entity: binary_sensor.er05_high_pressure_fault
+            hidden_state:
+              - 'off'
+              - OK
+              - unavailable
+              - unknown
+              - Cleared
+          - entity: binary_sensor.er06_low_pressure_fault
+            hidden_state:
+              - 'off'
+              - OK
+              - unavailable
+              - unknown
+              - Cleared
+          - entity: >-
+              binary_sensor.er10_frequency_conversion_module_communication_failure
+            hidden_state:
+              - 'off'
+              - OK
+              - unavailable
+              - unknown
+              - Cleared
+          - entity: binary_sensor.er12_exhaust_temp_too_high
+            hidden_state:
+              - 'off'
+              - OK
+              - unavailable
+              - unknown
+              - Cleared
+          - entity: binary_sensor.er14_water_tank_temp_sensor_fault
+            hidden_state:
+              - 'off'
+              - OK
+              - unavailable
+              - unknown
+              - Cleared
+          - entity: binary_sensor.er15_water_inlet_temp_sensor_fault
+            hidden_state:
+              - 'off'
+              - OK
+              - unavailable
+              - unknown
+              - Cleared
+          - entity: binary_sensor.er16_evaporator_coil_temp_sensor_fault
+            hidden_state:
+              - 'off'
+              - OK
+              - unavailable
+              - unknown
+              - Cleared
+          - entity: binary_sensor.er18_exhaust_temp_fault
+            hidden_state:
+              - 'off'
+              - OK
+              - unavailable
+              - unknown
+              - Cleared
+          - entity: binary_sensor.er21_ambiet_temp_sensor_fault
+            hidden_state:
+              - 'off'
+              - OK
+              - unavailable
+              - unknown
+              - Cleared
+          - entity: >-
+              binary_sensor.er23_cooling_outlet_water_temp_supercooling_protection
+            hidden_state:
+              - 'off'
+              - OK
+              - unavailable
+              - unknown
+              - Cleared
+          - entity: binary_sensor.er27_outlet_water_temp_sensor_fault
+            hidden_state:
+              - 'off'
+              - OK
+              - unavailable
+              - unknown
+              - Cleared
+          - entity: binary_sensor.er29_return_gas_temp_sensor_fault
+            hidden_state:
+              - 'off'
+              - OK
+              - unavailable
+              - unknown
+              - Cleared
+          - entity: binary_sensor.er32_overheating_water_outlet
+            hidden_state:
+              - 'off'
+              - OK
+              - unavailable
+              - unknown
+              - Cleared
+          - entity: binary_sensor.er33_coil_temp_too_high
+            hidden_state:
+              - 'off'
+              - OK
+              - unavailable
+              - unknown
+              - Cleared
+          - entity: binary_sensor.er42_cooling_coil_temp_sensor_failure
+            hidden_state:
+              - 'off'
+              - OK
+              - unavailable
+              - unknown
+              - Cleared
+          - entity: binary_sensor.er64_dc_fan_1_fault
+            hidden_state:
+              - 'off'
+              - OK
+              - unavailable
+              - unknown
+              - Cleared
+          - entity: binary_sensor.er69_too_low_pressure_protection
+            hidden_state:
+              - 'off'
+              - OK
+              - unavailable
+              - unknown
+              - Cleared
+          - entity: binary_sensor.ipm_overcurrent
+            hidden_state:
+              - 'off'
+              - OK
+              - unavailable
+              - unknown
+              - Cleared
+          - entity: binary_sensor.ipm_temperature_is_too_high
+            hidden_state:
+              - 'off'
+              - OK
+              - unavailable
+              - unknown
+              - Cleared
+          - entity: binary_sensor.press_syncronization_abnormality
+            hidden_state:
+              - 'off'
+              - OK
+              - unavailable
+              - unknown
+              - Cleared
+          - entity: binary_sensor.press_output_phase_loss
+            hidden_state:
+              - 'off'
+              - OK
+              - unavailable
+              - unknown
+              - Cleared
+          - entity: binary_sensor.dc_bus_voltage_is_high
+            hidden_state:
+              - 'off'
+              - OK
+              - unavailable
+              - unknown
+              - Cleared
+          - entity: binary_sensor.dc_bus_voltage_is_low
+            hidden_state:
+              - 'off'
+              - OK
+              - unavailable
+              - unknown
+              - Cleared
+          - entity: binary_sensor.heat_sink_temperature_failure
+            hidden_state:
+              - 'off'
+              - OK
+              - unavailable
+              - unknown
+              - Cleared
+          - entity: binary_sensor.the_heat_sink_temperature_is_too_high
+            hidden_state:
+              - 'off'
+              - OK
+              - unavailable
+              - unknown
+              - Cleared
+          - entity: binary_sensor.communication_failure
+            hidden_state:
+              - 'off'
+              - OK
+              - unavailable
+              - unknown
+              - Cleared
+          - entity: binary_sensor.ac_input_phase_loss
+            hidden_state:
+              - 'off'
+              - OK
+              - unavailable
+              - unknown
+              - Cleared
+          - entity: binary_sensor.ac_input_overcurrent
+            hidden_state:
+              - 'off'
+              - OK
+              - unavailable
+              - unknown
+              - Cleared
+          - entity: binary_sensor.ac_input_voltage_is_low
+            hidden_state:
+              - 'off'
+              - OK
+              - unavailable
+              - unknown
+              - Cleared
+          - entity: binary_sensor.high_voltage_fault
+            hidden_state:
+              - 'off'
+              - OK
+              - unavailable
+              - unknown
+              - Cleared
+          - entity: binary_sensor.the_peak_current_of_the_press_is_too_high
+            hidden_state:
+              - 'off'
+              - OK
+              - unavailable
+              - unknown
+              - Cleared
+          - entity: binary_sensor.pfc_module_over_temperature
+            hidden_state:
+              - 'off'
+              - OK
+              - unavailable
+              - unknown
+              - Cleared
+        state_filter:
+          - Problem
+          - Detected
+    type: panel
+
+  - type: panel
+    title: Defrosting
+    cards:
+    - type: custom:history-explorer-card
+      cardName: historycard-64500347
+      header: null
+      defaultTimeRange: 12h
+      refresh:
+        automatic: true
+      lineMode: stepped
+      showCurrentValues: true
+      combineSameUnits: true
+      stateTextMode: auto
+      graphs:
+      - type: line
+        entities:
+        - entity: sensor.a39_defrost_main_expansion_valve_opening
+        - entity: sensor.b39_auxiliary_valve_opening_during_defrosting
+      - type: line
+        entities:
+        - entity: sensor.p9_defrosting_frequency
+        - entity: sensor.p11_defrosting_enter_temp
+        - entity: sensor.p13_defrosting_exit_temp
+        - entity: sensor.p14_defrosting_environment_and_evaporator_coil_temp_difference_2
+        - entity: sensor.p15_defrosting_environment_and_evaporator_coil_temp_difference_2
+        - entity: sensor.p16_ambient_temp_for_defrosting
+      - type: line
+        entities:
+        - entity: sensor.actual_frequency
+      - type: line
+        entities:
+        - entity: sensor.p12_defrosting_time
+      - type: timeline
+        entities:
+        - entity: binary_sensor.defrosting
+        - entity: binary_sensor.er05_high_pressure_fault
+        - entity: sensor.3_way_valve
+        - entity: sensor.compressor
+        - entity: switch.u_energy_on_off
+      - type: line
+        entities:
+        - entity: sensor.evaporator_coil_temp
+    visible:
+    - user: 828d0d08968b405a8496bf6d42bd2422
+    - user: 3c0873c2dc7c4a7ba632ae00f0e42cb2
+    - user: d982774b901b467185b130ead3d26213
+    - user: 13bed08252774402ba4808f2f349c5fb
+    path: defrosting
+  - title: Energy
+    path: energia
+    type: panel
+    badges: []
+    cards:
+    - type: custom:history-explorer-card
+      cardName: historycard-72324436
+      header: Heat pump
+      defaultTimeRange: 2h
+      refresh:
+        automatic: true
+        interval: 3
+      lineMode: stepped
+      showCurrentValues: true
+      combineSameUnits: true
+      showvalues: true
+      stateTextMode: auto
+      uiLayout:
+        toolbar: top
+        selector: bottom
+      labelsVisible: true
+      labelAreaWidth: 150
+      showTooltipColorsLine: false
+      showTooltipColorsTimeline: false
+      StateColors:
+        motion.on: green
+        binary_sensor.off: rgb(255,0,0)
+        'off': '#800080'
+        'true': green
+        'false': rgb(255,0,0)
+      decimation: true
+      graphs:
+      - type: line
+        entities:
+        - entity: sensor.actual_frequency
+      - type: line
+        entities:
+        - entity: sensor.opening_of_main_expansion_valve
+      - type: line
+        entities:
+        - entity: sensor.fault_flag_1
+      - type: line
+        entities:
+        - entity: sensor.evaporator_coil_temp
+      - type: line
+        entities:
+        - entity: sensor.opening_of_auxiliary_expansion_valve
+      - type: timeline
+        entities:
+        - entity: binary_sensor.defrosting
+        - entity: binary_sensor.er05_high_pressure_fault
+        - entity: binary_sensor.high_pressure_switch
+        - entity: sensor.3_way_valve
+        - entity: sensor.compressor
+        - entity: switch.u_energy_on_off
+    visible:
+    - user: 828d0d08968b405a8496bf6d42bd2422
+    - user: 3c0873c2dc7c4a7ba632ae00f0e42cb2
+    - user: d982774b901b467185b130ead3d26213
+    - user: 13bed08252774402ba4808f2f349c5fb

@@ -1,0 +1,2357 @@
+# Power World R32 air-water heat pump — Home Assistant package
+#
+# One file: Modbus connection, sensors, helpers, automations and customize.
+# Before use, set your converter's IP address in the modbus: section below
+# (search for CHANGE). See README.md for the full installation guide.
+#
+# WARNING: the heat pump stores every written parameter in flash memory,
+# which wears out with too many writes. The automations below write to the
+# device ONLY when a person changes a value in the UI, and only when the
+# value differs from what the device already has. Do not add automations
+# that write to the heat pump periodically.
+
+modbus:
+  - name: ultimate
+    type: tcp
+    host: 192.168.1.100   # <-- CHANGE: IP address of your RS485-to-TCP converter
+    port: 502            # <-- CHANGE if your converter uses another port
+    delay: 1
+    sensors:
+      - name: "Parameter Flags 1"
+        address: 0x0000
+        data_type: int16
+        input_type: holding
+        slave: 1
+        precision: 0
+        scan_interval: 10
+        state_class: measurement
+        unique_id: "parameter_flags_1"
+      - name: "control_flags_1"
+        address: 0x0001
+        data_type: int16
+        input_type: holding
+        slave: 1
+        precision: 0
+        scan_interval: 10
+        state_class: measurement
+        unique_id: "control_flags_1"
+      - name: "control_flags_2"
+        address: 0x0002
+        data_type: int16
+        input_type: holding
+        slave: 1
+        precision: 0
+        scan_interval: 10
+        state_class: measurement
+        unique_id: "control_flags_2"
+      - name: "Work Mode"
+        address: 0x0004
+        slave: 1
+        scan_interval: 10
+        precision: 0
+        input_type: holding
+        state_class: measurement
+        unique_id: "work_mode"
+      - name: "P9 Defrosting frequency"
+        address: 0x0005
+        slave: 1
+        data_type: int16
+        scan_interval: 10
+        precision: 0
+        input_type: holding
+        unit_of_measurement: "Hz"
+        device_class: frequency
+        state_class: measurement
+        unique_id: "defrosting frequency"  
+      - name: "P10 Defrosting period"
+        address: 0x0006
+        slave: 1
+        data_type: int16
+        scan_interval: 10
+        precision: 0
+        input_type: holding
+        unit_of_measurement: min
+        state_class: measurement
+        device_class: duration
+        unique_id: "defrosting period"
+      - name: "P12 Defrosting time"
+        address: 0x0007
+        slave: 1
+        data_type: int16
+        scan_interval: 10
+        precision: 0
+        input_type: holding
+        unit_of_measurement: min
+        device_class: duration
+        state_class: measurement
+        unique_id: "defrosting time" 
+      - name: "A01 main expansion valve action cycle"
+        address: 0x0008
+        slave: 1
+        data_type: int16
+        scan_interval: 10
+        precision: 0
+        input_type: holding
+        device_class: duration
+        unit_of_measurement: s
+        state_class: measurement
+        unique_id: "main_expansion_valve_action_cycle"  
+      - name: "A14 heating main valve initial opening 00"
+        address: 0x0009
+        slave: 1
+        data_type: int16
+        scan_interval: 10
+        precision: 0
+        scale: 2
+        input_type: holding
+        state_class: measurement
+        unique_id: "heating_main_valve_initial_opening_00"    
+      - name: "A15 heating main valve initial opening 01"
+        address: 0x000A
+        slave: 1
+        data_type: int16
+        scan_interval: 10
+        precision: 0
+        scale: 1
+        input_type: holding
+        state_class: measurement
+        unique_id: "heating_main_valve_initial_opening_01"   
+      - name: "Water Inlet Temperature"
+        scan_interval: 10
+        address: 32782
+        slave: 1
+        input_type: holding
+        scale: 0.1
+        precision: 1
+        device_class: temperature
+        state_class: measurement
+        unit_of_measurement: "°C"
+        unique_id: water_inlet_temp
+      - name: "Water Tank Temperature"
+        scan_interval: 10
+        address: 32783
+        slave: 1
+        input_type: holding
+        scale: 0.5
+        precision: 1
+        device_class: temperature
+        state_class: measurement
+        unit_of_measurement: "°C"
+        unique_id: water_tank_temp
+      - name: "Ambient Temperature"
+        scan_interval: 10
+        address: 32785
+        slave: 1
+        input_type: holding
+        scale: 0.5
+        precision: 1
+        device_class: temperature
+        state_class: measurement
+        unit_of_measurement: "°C"
+        unique_id: ambient_temp
+      - name: "Water Outlet Temperature"
+        scan_interval: 10
+        address: 32786
+        slave: 1
+        input_type: holding
+        scale: 0.5
+        precision: 1
+        device_class: temperature
+        state_class: measurement
+        unit_of_measurement: "°C"
+        unique_id: water_outlet_temp
+      - name: "Compressor Current"
+        scan_interval: 10
+        address: 32803
+        slave: 1
+        scale: 1
+        precision: 0
+        input_type: holding
+        device_class: current
+        state_class: measurement
+        unit_of_measurement: "A"
+        unique_id: compressor_current
+      - name: "Actual Frequency"
+        scan_interval: 10
+        address: 32804
+        slave: 1
+        input_type: holding
+        scale: 1
+        precision: 0
+        state_class: measurement
+        unit_of_measurement: Hz
+        device_class: frequency
+        unique_id: actual_frequency
+      - name: "Fan 1 Speed"
+        scan_interval: 10
+        address:  32806
+        slave: 1
+        input_type: holding
+        scale: 1
+        precision: 0
+        state_class: measurement
+        unit_of_measurement: "r/min"
+        unique_id: fan_1_speed
+      - name: "Fan 2 Speed"
+        scan_interval: 10
+        address:  32807
+        slave: 1
+        input_type: holding
+        scale: 1
+        precision: 0
+        state_class: measurement
+        unit_of_measurement: "r/min"
+        unique_id: fan_2_speed
+      - name: "Status Check"
+        address: 0x8002
+        data_type: int16
+        input_type: holding
+        slave: 1
+        precision: 0
+        scan_interval: 5
+        state_class: measurement
+        unique_id: "status_check"
+      - name: "Mode Selection"
+        address: 0x8003
+        slave: 1
+        data_type: int16
+        scan_interval: 10
+        precision: 0
+        input_type: holding
+        state_class: measurement
+        unique_id: "apwh_mode_selection"
+      - name: "Output flag 1"
+        address: 0x8004
+        slave: 1
+        data_type: int16
+        scan_interval: 10
+        precision: 0
+        input_type: holding
+        state_class: measurement
+        unique_id: "output_flag_1"
+      - name: "Output flag 2"
+        address: 0x8005
+        slave: 1
+        data_type: int16
+        scan_interval: 10
+        precision: 0
+        input_type: holding
+        state_class: measurement
+        unique_id: "output_flag_2"
+      - name: "Output flag 3"
+        address: 0x8006
+        slave: 1
+        data_type: int16
+        scan_interval: 10
+        precision: 0
+        input_type: holding
+        state_class: measurement
+        unique_id: "output_flag_3"
+      - name: "Heating Temperature Diff"
+        scan_interval: 10
+        address:  0x008D
+        slave: 1
+        input_type: holding
+        scale: 1
+        precision: 0
+        device_class: temperature
+        state_class: measurement
+        unit_of_measurement: "°C"
+        unique_id: heating_cooling_in_and_out_temperature_diff
+      - name: "DHW Temperature Diff"
+        scan_interval: 10
+        address:  0x008E
+        slave: 1
+        input_type: holding
+        scale: 1
+        precision: 0
+        device_class: temperature
+        state_class: measurement
+        unit_of_measurement: "°C"
+        unique_id: dhw_temperature_diff
+      - name: "Hot Water Set Temperature"
+        scan_interval: 10
+        address:  0x008F
+        slave: 1
+        input_type: holding
+        scale: 1
+        precision: 0
+        device_class: temperature
+        state_class: measurement
+        unit_of_measurement: "°C"
+        unique_id: hot_water_set_temperature
+      - name: "Cooling Set Temperature"
+        scan_interval: 10
+        address:  0x0090
+        slave: 1
+        input_type: holding
+        scale: 1
+        precision: 0
+        device_class: temperature
+        state_class: measurement
+        unit_of_measurement: "°C"
+        unique_id: cooling_set_temp
+      - name: "Heating Set Temperature"
+        scan_interval: 10
+        address:  0x0091
+        slave: 1
+        input_type: holding
+        scale: 1
+        precision: 0
+        device_class: temperature
+        state_class: measurement
+        unit_of_measurement: "°C"
+        unique_id: heating_set_temp
+      - name: "P11 Defrosting enter temp"
+        scan_interval: 10
+        address:  0x0093
+        slave: 1
+        input_type: holding
+        scale: 1
+        precision: 0
+        device_class: temperature
+        state_class: measurement
+        unit_of_measurement: "°C"
+        unique_id: p11_Defrosting_enter_temp
+      - name: "P13 Defrosting exit temp"
+        scan_interval: 10
+        address:  0x0094
+        slave: 1
+        input_type: holding
+        scale: 1
+        precision: 0
+        device_class: temperature
+        state_class: measurement
+        unit_of_measurement: "°C"
+        unique_id: p13_Defrosting_exit_temp
+      - name: "P14 Defrosting environment and evaporator coil temp difference"
+        scan_interval: 10
+        address:  0x0095
+        slave: 1
+        input_type: holding
+        scale: 1
+        precision: 0
+        device_class: temperature
+        state_class: measurement
+        unit_of_measurement: "°C"
+        unique_id: p14_defrosting_environment_and_evaporator_coil_temp_difference
+      - name: "P15 Defrosting environment and evaporator coil temp difference_2"
+        scan_interval: 10
+        address:  0x0096
+        slave: 1
+        input_type: holding
+        scale: 1
+        precision: 0
+        device_class: temperature
+        state_class: measurement
+        unit_of_measurement: "°C"
+        unique_id: p15_defrosting_environment_and_evaporator_coil_temp_difference
+      - name: "P16 Ambient temp for defrosting"
+        scan_interval: 10
+        address:  0x0097
+        slave: 1
+        input_type: holding
+        scale: 1
+        precision: 0
+        device_class: temperature
+        state_class: measurement
+        unit_of_measurement: "°C"
+        unique_id: p16_ambient_temp_defrost
+      - name: "Vacation Set Temperature"
+        scan_interval: 10
+        address: 0x00F2
+        slave: 1
+        input_type: holding
+        scale: 1
+        precision: 0
+        device_class: temperature
+        state_class: measurement
+        unit_of_measurement: "°C"
+        unique_id: vacation_set_temp
+      - name: "Fault flag 1"
+        address: 0x8007
+        slave: 1
+        data_type: int16
+        scan_interval: 5
+        precision: 0
+        input_type: holding
+        state_class: measurement
+        unique_id: "Fault_flag_1"
+      - name: "Fault flag 2"
+        address: 0x8008
+        slave: 1
+        data_type: int16
+        scan_interval: 5
+        precision: 0
+        input_type: holding
+        state_class: measurement
+        unique_id: "Fault_flag_2"
+      - name: "Fault flag 3"
+        address: 0x8009
+        slave: 1
+        data_type: int16
+        scan_interval: 5
+        precision: 0
+        input_type: holding
+        state_class: measurement
+        unique_id: "Fault_flag_3"
+      - name: "Fault flag 4"
+        address: 0x800A
+        slave: 1
+        data_type: int16
+        scan_interval: 5
+        precision: 0
+        state_class: measurement
+        input_type: holding
+        unique_id: "Fault_flag_4"
+      - name: "Fault flag 5"
+        address: 0x800B
+        slave: 1
+        data_type: int16
+        scan_interval: 5
+        precision: 0
+        input_type: holding
+        state_class: measurement
+        unique_id: "Fault_flag_5"
+      - name: "Fault flag 6"
+        address: 0x800C
+        slave: 1
+        data_type: int16
+        scan_interval: 5
+        precision: 0
+        input_type: holding
+        state_class: measurement
+        unique_id: "Fault_flag_6"
+      - name: "Fault flag 7"
+        address: 0x800D
+        slave: 1
+        data_type: int16
+        scan_interval: 5
+        precision: 0
+        input_type: holding
+        state_class: measurement
+        unique_id: "Fault_flag_7"
+      - name: "B39 Auxiliary valve opening during defrosting"
+        address:  0x0040
+        slave: 1
+        data_type: int16
+        scan_interval: 10
+        precision: 0
+        scale: 2
+        input_type: holding
+        state_class: measurement
+        unique_id: "b39_auxiliary_valve_opening_during_defrosting"  
+      - name: "B40 Auxiliary valve opening during cooling"
+        address:  0x0041
+        slave: 1
+        data_type: int16
+        scan_interval: 10
+        precision: 0
+        scale: 2
+        input_type: holding
+        device_class: pressure
+        state_class: measurement
+        unit_of_measurement: "bar"
+        unique_id: "Auxiliary valve opening during cooling" 
+      - name: "C03 High pressure protection value (reserved)"
+        address:  0x0042
+        slave: 1
+        data_type: int16
+        scan_interval: 10
+        precision: 0
+        input_type: holding
+        device_class: pressure
+        state_class: measurement
+        unit_of_measurement: "bar"
+        unique_id: "high_pressure_protection_value_reserved"    
+      - name: "C04 High pressure recovery value (reserved)"
+        address:  0x0043
+        slave: 1
+        data_type: int16
+        scan_interval: 10
+        precision: 0
+        input_type: holding
+        device_class: pressure
+        state_class: measurement
+        unit_of_measurement: "bar"
+        unique_id: "high_pressure_recovery_value_reserved"      
+      - name: "C05 low pressure protection value (reserved)"
+        address:  0x0044
+        slave: 1
+        data_type: int16
+        scan_interval: 10
+        precision: 0
+        input_type: holding
+        device_class: pressure
+        state_class: measurement
+        unit_of_measurement: "bar"
+        unique_id: "low_pressure_protection_value_reserved"      
+      - name: "C06 low pressure protection value"
+        address:  0x0045
+        slave: 1
+        data_type: int16
+        scan_interval: 10
+        precision: 0
+        input_type: holding
+        device_class: pressure
+        state_class: measurement
+        unit_of_measurement: "bar"
+        unique_id: "low_pressure_protection_value"    
+      - name: "Evaporator coil temp"
+        address:  0x8016
+        slave: 1
+        data_type: int16
+        scan_interval: 10
+        precision: 1
+        scale: 0.5
+        input_type: holding
+        device_class: temperature
+        state_class: measurement
+        unit_of_measurement: "°C"
+        unique_id: "evaporator_coil_temp"  
+      - name: "Cooling coil temp"
+        address:  0x801A
+        slave: 1
+        data_type: int16
+        scan_interval: 10
+        precision: 1
+        scale: 0.5
+        input_type: holding
+        state_class: measurement
+        unit_of_measurement: "°C"
+        unique_id: "cooling_coil_temp"   
+      - name: "Exhaust gas temp"
+        address:  0x801B
+        slave: 1
+        data_type: int16
+        scan_interval: 10
+        precision: 1
+        scale: 1
+        input_type: holding
+        state_class: measurement
+        unit_of_measurement: "°C"
+        unique_id: "exhaust gas_temp"   
+      - name: "Opening of Main Expansion valve"
+        address:  0x801C
+        slave: 1
+        data_type: int16
+        scan_interval: 10
+        precision: 0
+        input_type: holding
+        state_class: measurement
+        unique_id: "main_expansion_valve"  
+      - name: " Opening of auxiliary expansion valve"
+        address:  0x801D
+        slave: 1
+        data_type: int16
+        scan_interval: 10
+        precision: 0
+        input_type: holding
+        state_class: measurement
+        unique_id: "opening_of_auxiliary_expansion_valve"
+      - name: "compressor actual frequency"
+        address: 0x801E
+        slave: 1
+        data_type: int16
+        scan_interval: 10
+        precision: 0
+        input_type: holding
+        device_class: frequency
+        state_class: measurement
+        unit_of_measurement: "Hz"
+        unique_id: "compressor_actual_frequency"
+      - name: "low 8bit inverter fault"
+        address: 0x801F
+        slave: 1
+        data_type: int16
+        scan_interval: 5
+        precision: 0
+        input_type: holding
+        device_class: enum
+        unique_id: "low_8bits_inverter_fault"
+      - name: "high 8bit inverter fault"
+        address: 0x8020
+        slave: 1
+        data_type: int16
+        scan_interval: 5
+        precision: 0
+        input_type: holding
+        device_class: enum
+        unique_id: "high_8bits_inverter_fault"
+      - name: "A39 defrost main expansion valve opening"
+        address:  0x0021
+        slave: 1
+        data_type: int16
+        scan_interval: 10
+        precision: 0
+        scale: 2
+        input_type: holding
+        state_class: measurement
+        unique_id: "a39_defrost_main_expansion_valve_opening"  
+      - name: "F8 Minimum rotation speed of DC waterpump"
+        address:  0x0109
+        slave: 1
+        data_type: int16
+        scan_interval: 10
+        precision: 0
+        input_type: holding
+        device_class: power_factor
+        state_class: measurement
+        unit_of_measurement: "%"
+        unique_id: "f8_minimum_rotation_speed_of_dc_waterpump"  
+      - name: "F9 water pump adjustment rotation speed"
+        address:  0x010A
+        slave: 1
+        data_type: int16
+        scan_interval: 10
+        precision: 0
+        input_type: holding
+        device_class: power_factor
+        state_class: measurement
+        unit_of_measurement: "%"
+        unique_id: "f9_water_pump_adjustment_rotation_speed"  
+      - name: "Set temperature difference between inlet and outlet water for DC water pump"
+        address:  0x010B
+        slave: 1
+        data_type: int16
+        scan_interval: 10
+        precision: 0
+        input_type: holding
+        device_class: temperature
+        state_class: measurement
+        unit_of_measurement: "°C"
+        unique_id: "set_temp_diff_inlet_outlet_water"  
+      - name: "eHeating turn on temp"
+        address:  0x00ED
+        slave: 1
+        data_type: int16
+        scan_interval: 10
+        precision: 0
+        input_type: holding
+        device_class: temperature
+        state_class: measurement
+        unit_of_measurement: "°C"
+        unique_id: "eheating_start_temp"
+      # P27 (0x00FE): compressor run time before the electric heater may start.
+      # Per the manual, the auxiliary heater (sensor.aux_eheating) also needs this
+      # time to pass. Read-only, read rarely (the setting is only changed by hand).
+      - name: "eHeating compressor run before start"
+        address: 0x00FE
+        slave: 1
+        data_type: int16
+        scan_interval: 600
+        precision: 0
+        input_type: holding
+        unit_of_measurement: "min"
+        state_class: measurement
+        unique_id: "eheating_compressor_run_before_start"
+
+
+
+      - name: "Auxiliary electronic expansion valve"
+        address: 32797
+        input_type: holding
+        precision: 0
+        scan_interval: 10
+        slave: 1
+        state_class: measurement
+        unique_id: auxiliary_electronic_expansion_valve
+
+
+
+
+    switches:
+      - name: U-Energy on/off
+        slave: 1
+        address: 0x0000
+        write_type: holding
+        command_on: 65  
+        command_off: 64
+        verify:
+          address: 0x0000
+          state_on: 65
+          state_off: 64
+
+
+
+homeassistant:
+  customize:
+    binary_sensor.ac_input_overcurrent:
+      device_id: ultimate_heat_pump
+      icon: mdi:alert
+    binary_sensor.ac_input_phase_loss:
+      device_id: ultimate_heat_pump
+      icon: mdi:alert
+    binary_sensor.ac_input_voltage_is_low:
+      device_id: ultimate_heat_pump
+      icon: mdi:alert
+    binary_sensor.communication_failure:
+      device_id: ultimate_heat_pump
+      icon: mdi:alert
+    binary_sensor.dc_bus_voltage_is_high:
+      device_id: ultimate_heat_pump
+      icon: mdi:alert
+    binary_sensor.dc_bus_voltage_is_low:
+      device_id: ultimate_heat_pump
+      icon: mdi:alert
+    binary_sensor.defrosting:
+      device_id: ultimate_heat_pump
+      icon: mdi:snowflake-melt
+    binary_sensor.dhw:
+      device_id: ultimate_heat_pump
+      icon: mdi:shower-head
+    binary_sensor.er03_water_flow_failure:
+      device_id: ultimate_heat_pump
+      icon: mdi:alert
+    binary_sensor.er05_high_pressure_fault:
+      device_id: ultimate_heat_pump
+      icon: mdi:alert
+    binary_sensor.er06_low_pressure_fault:
+      device_id: ultimate_heat_pump
+      icon: mdi:alert
+    binary_sensor.er10_frequency_conversion_module_communication_failure:
+      device_id: ultimate_heat_pump
+      icon: mdi:alert
+    binary_sensor.er12_exhaust_temp_too_high:
+      device_id: ultimate_heat_pump
+      icon: mdi:alert
+    binary_sensor.er14_water_tank_temp_sensor_fault:
+      device_id: ultimate_heat_pump
+      icon: mdi:alert
+    binary_sensor.er15_water_inlet_temp_sensor_fault:
+      device_id: ultimate_heat_pump
+      icon: mdi:alert
+    binary_sensor.er16_evaporator_coil_temp_sensor_fault:
+      device_id: ultimate_heat_pump
+      icon: mdi:alert
+    binary_sensor.er18_exhaust_temp_fault:
+      device_id: ultimate_heat_pump
+      icon: mdi:alert
+    binary_sensor.er21_ambiet_temp_sensor_fault:
+      device_id: ultimate_heat_pump
+      icon: mdi:alert
+    binary_sensor.er23_cooling_outlet_water_temp_supercooling_protection:
+      device_id: ultimate_heat_pump
+      icon: mdi:alert
+    binary_sensor.er27_outlet_water_temp_sensor_fault:
+      device_id: ultimate_heat_pump
+      icon: mdi:alert
+    binary_sensor.er29_return_gas_temp_sensor_fault:
+      device_id: ultimate_heat_pump
+      icon: mdi:alert
+    binary_sensor.er32_overheating_water_outlet:
+      device_id: ultimate_heat_pump
+      icon: mdi:alert
+    binary_sensor.er33_coil_temp_too_high:
+      device_id: ultimate_heat_pump
+      icon: mdi:alert
+    binary_sensor.er42_cooling_coil_temp_sensor_failure:
+      device_id: ultimate_heat_pump
+      icon: mdi:alert
+    binary_sensor.er64_dc_fan_1_fault:
+      device_id: ultimate_heat_pump
+      icon: mdi:alert
+    binary_sensor.er66_dc_fan_2_fault:
+      device_id: ultimate_heat_pump
+      icon: mdi:alert
+    binary_sensor.er67_low_pressure_switch_failure:
+      device_id: ultimate_heat_pump
+      icon: mdi:alert
+    binary_sensor.er69_too_low_pressure_protection:
+      device_id: ultimate_heat_pump
+      icon: mdi:alert
+    binary_sensor.evu_signal:
+      device_id: ultimate_heat_pump
+      icon: mdi:close-network-outline
+    binary_sensor.fans:
+      device_id: ultimate_heat_pump
+      icon: mdi:fan
+    binary_sensor.heat_sink_temperature_failure:
+      device_id: ultimate_heat_pump
+      icon: mdi:alert
+    binary_sensor.high_pressure_switch:
+      device_id: ultimate_heat_pump
+      icon: mdi:alert
+    binary_sensor.high_voltage_fault:
+      device_id: ultimate_heat_pump
+      icon: mdi:alert
+    binary_sensor.ipm_overcurrent:
+      device_id: ultimate_heat_pump
+      icon: mdi:alert
+    binary_sensor.ipm_temperature_is_too_high:
+      device_id: ultimate_heat_pump
+      icon: mdi:alert
+    binary_sensor.level_1_anti_freeze:
+      device_id: ultimate_heat_pump
+      icon: mdi:snowflake
+    binary_sensor.linkage_switch:
+      device_id: ultimate_heat_pump
+      icon: mdi:close-network-outline
+    binary_sensor.low_pressure_switch:
+      device_id: ultimate_heat_pump
+      icon: mdi:alert
+    binary_sensor.pfc_module_over_temperature:
+      device_id: ultimate_heat_pump
+      icon: mdi:alert
+    binary_sensor.press_output_phase_loss:
+      device_id: ultimate_heat_pump
+      icon: mdi:alert
+    binary_sensor.press_syncronization_abnormality:
+      device_id: ultimate_heat_pump
+      icon: mdi:alert
+    binary_sensor.secondary_anti_freeze:
+      device_id: ultimate_heat_pump
+      icon: mdi:alert
+    binary_sensor.sg_signal:
+      device_id: ultimate_heat_pump
+      icon: mdi:close-network-outline
+    binary_sensor.the_heat_sink_temperature_is_too_high:
+      device_id: ultimate_heat_pump
+      icon: mdi:alert
+    binary_sensor.the_peak_current_of_the_press_is_too_high:
+      device_id: ultimate_heat_pump
+      icon: mdi:alert
+    binary_sensor.vacation_mode:
+      device_id: ultimate_heat_pump
+      icon: mdi:airplane
+    binary_sensor.water_flow_switch:
+      device_id: ultimate_heat_pump
+      icon: mdi:alert
+    binary_sensor.domestic_hot_water:
+      icon: mdi:shower-head
+    binary_sensor.heating:
+      icon: mdi:weather-sunny
+    input_boolean.vacation_mode:
+      device_id: ultimate_heat_pump
+      icon: mdi:airplane
+    input_number.cooling_set_temperature:
+      address: 144
+      device_id: ultimate_heat_pump
+      icon: mdi:snowflake
+      mode: slider
+      precision: 0
+      unit_of_measurement: "\xB0C"
+    input_number.heating_set_temperature:
+      address: 145
+      device_id: ultimate_heat_pump
+      icon: mdi:heat-wave
+      mode: slider
+      precision: 0
+      unit_of_measurement: "\xB0C"
+    input_number.heating_temperature_diff:
+      address: 141
+      device_id: ultimate_heat_pump
+      icon: mdi:thermometer
+      mode: slider
+      precision: 0
+      unit_of_measurement: "\xB0C"
+    input_number.hot_water_set_temperature:
+      address: 143
+      device_id: ultimate_heat_pump
+      icon: mdi:shower-head
+      mode: slider
+      precision: 0
+      unit_of_measurement: "\xB0C"
+    input_number.vacation_set_temperature:
+      address: 242
+      device_id: ultimate_heat_pump
+      icon: mdi:thermometer
+      mode: slider
+      precision: 0
+      unit_of_measurement: "\xB0C"
+    input_select.operation_mode:
+      icon: mdi:format-list-bulleted
+      device_id: ultimate_heat_pump
+    input_select.work_mode:
+      address: 4
+      device_id: ultimate_heat_pump
+      icon: mdi:format-list-bulleted
+    sensor.a39_defrost_main_expansion_valve_opening:
+      address: 33
+      device_id: ultimate_heat_pump
+      icon: mdi:valve
+      precision: 0
+    sensor.actual_frequency:
+      address: 32804
+      device_id: ultimate_heat_pump
+      icon: mdi:wave
+      precision: 0
+    sensor.b39_auxiliary_valve_opening_during_defrosting:
+      address: 64
+      device_id: ultimate_heat_pump
+      icon: mdi:valve
+      precision: 0
+    sensor.compressor_actual_frequency:
+      address: 32798
+      device_id: ultimate_heat_pump
+      icon: mdi:wave
+      precision: 0
+    sensor.compressor_current:
+      address: 32803
+      device_id: ultimate_heat_pump
+      icon: mdi:current-ac
+      precision: 0
+    sensor.control_flags_1:
+      address: 1
+      device_id: ultimate_heat_pump
+      icon: mdi:flag
+      precision: 0
+      initial: "0"
+    sensor.control_flags_2:
+      address: 2
+      device_id: ultimate_heat_pump
+      icon: mdi:flag
+      precision: 0
+      initial: "0"
+    sensor.cooling_coil_temp:
+      address: 32794
+      device_id: ultimate_heat_pump
+      icon: mdi:thermometer
+      precision: 1
+    sensor.cooling_set_temperature:
+      address: 144
+      device_id: ultimate_heat_pump
+      hidden: true
+    sensor.dhw_temperature_diff:
+      address: 142
+      device_id: ultimate_heat_pump
+      hidden: true
+    sensor.evaporator_coil_temp:
+      address: 32790
+      device_id: ultimate_heat_pump
+      icon: mdi:thermometer
+      precision: 1
+    sensor.exhaust_gas_temp:
+      address: 32795
+      device_id: ultimate_heat_pump
+      icon: mdi:thermometer
+      precision: 1
+    sensor.f8_minimum_rotation_speed_of_dc_waterpump:
+      address: 265
+      device_id: ultimate_heat_pump
+      icon: mdi:water-pump
+      precision: 0
+    sensor.f9_water_pump_adjustment_rotation_speed:
+      address: 266
+      device_id: ultimate_heat_pump
+      icon: mdi:water-pump
+      precision: 0
+    sensor.fan_1_speed:
+      address: 32806
+      device_id: ultimate_heat_pump
+      icon: mdi:fan-speed-1
+      precision: 0
+    sensor.fan_2_speed:
+      address: 32807
+      device_id: ultimate_heat_pump
+      icon: mdi:fan-speed-2
+      precision: 0
+    sensor.fault_flag_1:
+      address: 32775
+      device_id: ultimate_heat_pump
+      icon: mdi:alert
+      precision: 0
+      initial: "0"
+    sensor.fault_flag_2:
+      address: 32776
+      device_id: ultimate_heat_pump
+      icon: mdi:alert
+      precision: 0
+      initial: "0"
+    sensor.fault_flag_3:
+      address: 32777
+      device_id: ultimate_heat_pump
+      icon: mdi:alert
+      precision: 0
+      initial: "0"
+    sensor.fault_flag_4:
+      address: 32778
+      device_id: ultimate_heat_pump
+      icon: mdi:alert
+      precision: 0
+      initial: "0"
+    sensor.fault_flag_5:
+      address: 32779
+      device_id: ultimate_heat_pump
+      icon: mdi:alert
+      precision: 0
+      initial: "0"
+    sensor.fault_flag_6:
+      address: 32780
+      device_id: ultimate_heat_pump
+      icon: mdi:alert
+      precision: 0
+      initial: "0"
+    sensor.fault_flag_7:
+      address: 32781
+      device_id: ultimate_heat_pump
+      icon: mdi:alert
+      precision: 0
+      initial: "0"
+    sensor.status_check_map:
+      initial: "0"
+    sensor.heating_set_temperature:
+      address: 145
+      device_id: ultimate_heat_pump
+      hidden: true
+    sensor.heating_temperature_diff:
+      address: 141
+      device_id: ultimate_heat_pump
+      hidden: true
+    sensor.hot_water_set_temperature:
+      address: 143
+      device_id: ultimate_heat_pump
+      hidden: true
+    sensor.opening_of_auxiliary_expansion_valve:
+      address: 32797
+      device_id: ultimate_heat_pump
+      icon: mdi:valve
+      precision: 0
+    sensor.output_flag_1:
+      address: 32772
+      device_id: ultimate_heat_pump
+      icon: mdi:flag
+      precision: 0
+      initial: "0"
+    sensor.output_flag_2:
+      address: 32773
+      device_id: ultimate_heat_pump
+      icon: mdi:flag
+      precision: 0
+      initial: "0"
+    sensor.output_flag_3:
+      address: 32774
+      device_id: ultimate_heat_pump
+      icon: mdi:flag
+      precision: 0
+      initial: "0"
+    sensor.p11_defrosting_enter_temp:
+      address: 147
+      device_id: ultimate_heat_pump
+      icon: mdi:snowflake-melt
+      precision: 1
+    sensor.parameter_flags_1:
+      address: 0
+      device_id: ultimate_heat_pump
+      icon: mdi:flag
+      precision: 0
+    sensor.status_check:
+      address: 32770
+      device_id: ultimate_heat_pump
+      icon: mdi:check-circle
+      precision: 0
+    sensor.vacation_set_temperature:
+      address: 242
+      device_id: ultimate_heat_pump
+      hidden: true
+    sensor.work_mode:
+      address: 4
+      device_id: ultimate_heat_pump
+      icon: mdi:cog
+      precision: 0
+    switch.u_energy_on_off:
+      device_id: ultimate_heat_pump
+      friendly_name: U-Energy on/off
+      icon: mdi:power
+    sensor.aux_eheating:
+      icon: mdi:heating-coil
+    sensor.opening_of_main_expansion_valve:
+      icon: mdi:valve
+    sensor.reduced_frequency:
+      icon: mdi:sine-wave
+    sensor.heating_target_temp_adjustment:
+      icon: mdi:thermometer
+    sensor.auxiliary_electronic_expansion_valve:
+      icon: mdi:valve
+
+input_boolean:
+  vacation_mode:
+    icon: mdi:airplane
+    initial: false
+    name: Vacation mode
+input_number:
+  cooling_set_temperature:
+    icon: mdi:snowflake
+    max: 30
+    min: 12
+    mode: slider
+    name: Cooling Temperature
+    step: 1
+    unit_of_measurement: "\xB0C"
+  dhw_temperature_diff:
+    icon: mdi:thermometer
+    max: 18
+    min: 2
+    mode: slider
+    name: DHW temperature diff
+    step: 1
+    unit_of_measurement: "\xB0C"
+  heating_temperature_diff:
+    icon: mdi:thermometer
+    max: 18
+    min: 2
+    mode: slider
+    name: Heating temperature diff
+    step: 1
+    unit_of_measurement: "\xB0C"
+  heating_set_temperature:
+    icon: mdi:heat-wave
+    max: 55
+    min: 15
+    mode: slider
+    name: Heating Temperature
+    step: 1
+    unit_of_measurement: "\xB0C"
+  hot_water_set_temperature:
+    icon: mdi:shower-head
+    max: 55
+    min: 28
+    mode: slider
+    name: Hot Water Temperature
+    step: 1
+    unit_of_measurement: "\xB0C"
+  vacation_set_temperature:
+    icon: mdi:thermometer
+    max: 55
+    min: 15
+    mode: slider
+    name: Vacation Temp
+    step: 1
+    unit_of_measurement: "\xB0C"
+
+input_select:
+  operation_mode:
+    icon: mdi:format-list-bulleted
+    name: Operation Mode
+    options:
+    - Smart
+    - Powerful
+    - Silent
+  work_mode:
+    icon: mdi:format-list-bulleted
+    name: Work Mode
+    options:
+    - DHW
+    - Heating
+    - Cooling
+    - DHW+Heating
+    - DHW+Cooling
+
+
+template:
+  # Binary sensors
+  - binary_sensor:
+
+      - name: "Compressor"
+        unique_id: compressor
+        icon: mdi:engine
+        state: >-
+          {% set v = state_attr('sensor.output_flag_1_map','compressor') %}
+          {{ v in ['on','1',1,True] }}
+
+      - name: "AC input overcurrent"
+        unique_id: ac_input_overcurrent
+        device_class: problem
+        state: >-
+          {% set v = state_attr('sensor.high_8bit_inverter_fault_map','AC_input_overcurrent') %}
+          {{ v in ['on','1',1,True] }}
+
+      - name: "AC input phase loss"
+        unique_id: ac_input_phase_loss
+        device_class: problem
+        state: >-
+          {% set v = state_attr('sensor.high_8bit_inverter_fault_map','AC_input_phase_loss') %}
+          {{ v in ['on','1',1,True] }}
+
+      - name: "AC input voltage is low"
+        unique_id: ac_input_voltage_is_low
+        device_class: problem
+        state: >-
+          {% set v = state_attr('sensor.high_8bit_inverter_fault_map','AC_input_voltage_is_low') %}
+          {{ v in ['on','1',1,True] }}
+
+      - name: "Communication failure"
+        unique_id: communication_failure
+        device_class: problem
+        state: >-
+          {% set v = state_attr('sensor.high_8bit_inverter_fault_map','Communication_failure') %}
+          {{ v in ['on','1',1,True] }}
+
+      - name: "DC bus voltage is high"
+        unique_id: dc_bus_voltage_is_high
+        device_class: problem
+        state: >-
+          {% set v = state_attr('sensor.low_8bit_inverter_fault_map','DC_bus_voltage_is_high') %}
+          {{ v in ['on','1',1,True] }}
+
+      - name: "DC bus voltage is low"
+        unique_id: dc_bus_voltage_is_low
+        device_class: problem
+        state: >-
+          {% set v = state_attr('sensor.low_8bit_inverter_fault_map','DC_bus_voltage_is_low') %}
+          {{ v in ['on','1',1,True] }}
+
+      - name: "Defrosting"
+        unique_id: defrosting
+        icon: mdi:snowflake-melt
+        state: >-
+          {% set v = state_attr('sensor.mode_selection_map','Defrosting') %}
+          {{ v in ['on','1',1,True] }}
+
+      - name: "DHW on/off"
+        unique_id: shower
+        icon: mdi:shower-head
+        state: "{{ not is_state_attr('sensor.control_flags_2_map','vacation_mode', true) }}"
+
+      - name: "Er03 water flow failure"
+        unique_id: er03_water_flow_failure
+        device_class: problem
+        state: >-
+          {% set v = state_attr('sensor.fault_flag_2_map','Er03_water_flow_failure') %}
+          {{ v in ['on','1',1,True] }}
+
+      - name: "Er05 high pressure fault"
+        unique_id: er05_high_pressure_fault
+        device_class: problem
+        state: >-
+          {% set v = state_attr('sensor.fault_flag_1_map','Er05_high_pressure_fault') %}
+          {{ v in ['on','1',1,True] }}
+
+      - name: "Er06 low pressure fault"
+        unique_id: er06_low_pressure_fault
+        device_class: problem
+        state: >-
+          {% set v = state_attr('sensor.fault_flag_1_map','Er06_low_pressure_fault') %}
+          {{ v in ['on','1',1,True] }}
+
+      - name: "Er10 frequency conversion module communication failure"
+        unique_id: er10_frequency_conversion_module_communication_failure
+        device_class: problem
+        state: >-
+          {% set v = state_attr('sensor.fault_flag_7_map','Er10_Frequency_conversion_module_communication_failure') %}
+          {{ v in ['on','1',1,True] }}
+
+      - name: "Er12 exhaust temp too high"
+        unique_id: er12_exhaust_temp_too_high
+        device_class: problem
+        state: >-
+          {% set v = state_attr('sensor.fault_flag_4_map','Er12_Exhaust_temp_too_high') %}
+          {{ v in ['on','1',1,True] }}
+
+      - name: "Er14 water tank temp sensor fault"
+        unique_id: er14_water_tank_temp_sensor_fault
+        device_class: problem
+        state: >-
+          {% set v = state_attr('sensor.fault_flag_1_map','Er14_water_tank_temp_sensor_fault') %}
+          {{ v in ['on','1',1,True] }}
+
+      - name: "Er15 water inlet temp sensor fault"
+        unique_id: er15_water_inlet_temp_sensor_fault
+        device_class: problem
+        state: >-
+          {% set v = state_attr('sensor.fault_flag_4_map','Er15_water_inlet_temp_sensor_fault') %}
+          {{ v in ['on','1',1,True] }}
+
+      - name: "Er16 evaporator coil temp sensor fault"
+        unique_id: er16_evaporator_coil_temp_sensor_fault
+        device_class: problem
+        state: >-
+          {% set v = state_attr('sensor.fault_flag_1_map','Er16_evaporator_coil_temp_sensor_fault') %}
+          {{ v in ['on','1',1,True] }}
+
+      - name: "Er18 exhaust temp fault"
+        unique_id: er18_exhaust_temp_fault
+        device_class: problem
+        state: >-
+          {% set v = state_attr('sensor.fault_flag_3_map','Er18_exhaust_temp_fault') %}
+          {{ v in ['on','1',1,True] }}
+
+      - name: "Er21 ambient temp sensor fault"
+        unique_id: er21_ambiet_temp_sensor_fault
+        device_class: problem
+        state: >-
+          {% set v = state_attr('sensor.fault_flag_1_map','Er21_ambiet_temp_sensor_fault') %}
+          {{ v in ['on','1',1,True] }}
+
+      - name: "Er23 cooling outlet water temp supercooling protection"
+        unique_id: er23_cooling_outlet_water_temp_supercooling_protection
+        device_class: problem
+        state: >-
+          {% set v = state_attr('sensor.fault_flag_4_map','Er23_cooling_outlet_water_temp_supercooling_protection') %}
+          {{ v in ['on','1',1,True] }}
+
+      - name: "Er27 outlet water temp sensor fault"
+        unique_id: er27_outlet_water_temp_sensor_fault
+        device_class: problem
+        state: >-
+          {% set v = state_attr('sensor.fault_flag_1_map','Er27_outlet_water_temp_sensor_fault') %}
+          {{ v in ['on','1',1,True] }}
+
+      - name: "Er29 return gas temp sensor fault"
+        unique_id: er29_return_gas_temp_sensor_fault
+        device_class: problem
+        state: >-
+          {% set v = state_attr('sensor.fault_flag_4_map','Er29_Return_gas_temp_sensor_fault') %}
+          {{ v in ['on','1',1,True] }}
+
+      - name: "Er32 overheating water outlet"
+        unique_id: er32_overheating_water_outlet
+        device_class: problem
+        state: >-
+          {% set v = state_attr('sensor.fault_flag_2_map','Er32_overheating_water_outlet') %}
+          {{ v in ['on','1',1,True] }}
+
+      - name: "Er33 coil temp too high"
+        unique_id: er33_coil_temp_too_high
+        device_class: problem
+        state: >-
+          {% set v = state_attr('sensor.fault_flag_5_map','Er33_coil_temp_too_high') %}
+          {{ v in ['on','1',1,True] }}
+
+      - name: "Er42 cooling coil temp sensor failure"
+        unique_id: er42_cooling_coil_temp_sensor_failure
+        device_class: problem
+        state: >-
+          {% set v = state_attr('sensor.fault_flag_5_map','Er42_cooling_coil_temp_sensor_failure') %}
+          {{ v in ['on','1',1,True] }}
+
+      - name: "Er64 DC fan 1 fault"
+        unique_id: er64_dc_fan_1_fault
+        device_class: problem
+        state: >-
+          {% set v = state_attr('sensor.fault_flag_7_map','Er64_DC_fan_1_fault') %}
+          {{ v in ['on','1',1,True] }}
+
+      - name: "Er66 DC fan 2 fault"
+        unique_id: er66_dc_fan_2_fault
+        device_class: problem
+        icon: mdi:fan-speed-2
+        state: >-
+          {% set v = state_attr('sensor.fault_flag_7_map','Er66_DC_fan_2_fault') %}
+          {{ v in ['on','1',1,True] }}
+
+      - name: "Er67 low pressure switch failure"
+        unique_id: er67_low_pressure_switch_failure
+        device_class: problem
+        state: >-
+          {% set v = state_attr('sensor.fault_flag_5_map','Er67_low_pressure_switch_failure') %}
+          {{ v in ['on','1',1,True] }}
+
+      - name: "Er69 too low pressure protection"
+        unique_id: er69_too_low_pressure_protection
+        device_class: problem
+        state: >-
+          {% set v = state_attr('sensor.fault_flag_5_map','Er69_too_low_pressure_protection') %}
+          {{ v in ['on','1',1,True] }}
+
+      - name: "Fans"
+        unique_id: fans
+        device_class: connectivity
+        icon: mdi:fan
+        state: >-
+          {% set v = state_attr('sensor.output_flag_1_map','Fans') %}
+          {{ v in ['on','1',1,True] }}
+
+      - name: "Heat sink temperature failure"
+        unique_id: heat_sink_temperature_failure
+        device_class: problem
+        state: >-
+          {% set v = state_attr('sensor.low_8bit_inverter_fault_map','Heat_sink_temperature_failure') %}
+          {{ v in ['on','1',1,True] }}
+
+      - name: "High voltage fault"
+        unique_id: high_voltage_fault
+        device_class: problem
+        state: >-
+          {% set v = state_attr('sensor.high_8bit_inverter_fault_map','High_voltage_fault') %}
+          {{ v in ['on','1',1,True] }}
+
+      - name: "IPM overcurrent"
+        unique_id: ipm_overcurrent
+        device_class: problem
+        state: >-
+          {% set v = state_attr('sensor.low_8bit_inverter_fault_map','IPM_overcurrent') %}
+          {{ v in ['on','1',1,True] }}
+
+      - name: "IPM temperature is too high"
+        unique_id: ipm_temperature_is_too_high
+        device_class: problem
+        state: >-
+          {% set v = state_attr('sensor.high_8bit_inverter_fault_map','IPM_temperature_is_too_high') %}
+          {{ v in ['on','1',1,True] }}
+
+      - name: "Level 1 anti freeze"
+        unique_id: level_1_anti_freeze
+        state: >-
+          {% set v = state_attr('sensor.fault_flag_6_map','Level_1_anti_freeze') %}
+          {{ v in ['on','1',1,True] }}
+
+      - name: "PFC module over temperature"
+        unique_id: pfc_module_over_temperature
+        device_class: problem
+        state: >-
+          {% set v = state_attr('sensor.high_8bit_inverter_fault_map','PFC_module_over_temperature') %}
+          {{ v in ['on','1',1,True] }}
+
+      - name: "Press output phase loss"
+        unique_id: press_output_phase_loss
+        device_class: problem
+        state: >-
+          {% set v = state_attr('sensor.low_8bit_inverter_fault_map','Press_output_phase_loss') %}
+          {{ v in ['on','1',1,True] }}
+
+      - name: "Press synchronization abnormality"
+        unique_id: press_syncronization_abnormality
+        device_class: problem
+        state: >-
+          {% set v = state_attr('sensor.low_8bit_inverter_fault_map','Press_syncronization_abnormality') %}
+          {{ v in ['on','1',1,True] }}
+
+      - name: "Secondary anti freeze"
+        unique_id: secondary_anti_freeze
+        device_class: problem
+        state: >-
+          {% set v = state_attr('sensor.fault_flag_6_map','Secondary_anti_freeze') %}
+          {{ v in ['on','1',1,True] }}
+
+      - name: "The heat sink temperature is too high"
+        unique_id: the_heat_sink_temperature_is_too_high
+        device_class: problem
+        state: >-
+          {% set v = state_attr('sensor.low_8bit_inverter_fault_map','The_heat_sink_temperature_is_too_high') %}
+          {{ v in ['on','1',1,True] }}
+
+      - name: "The peak current of the press is too high"
+        unique_id: the_peak_current_of_the_press_is_too_high
+        device_class: problem
+        state: >-
+          {% set v = state_attr('sensor.high_8bit_inverter_fault_map','The_peak_current_of_the_press_is_too_high') %}
+          {{ v in ['on','1',1,True] }}
+
+      - name: "Vacation mode"
+        unique_id: vacation_mode
+        icon: mdi:airplane
+        state: >
+          {% set v = state_attr('sensor.control_flags_2_map','vacation_mode') %}
+          {{ v is true }}
+
+
+      - name: "EVU signal"
+        unique_id: evu_signal
+        device_class: connectivity
+        icon: mdi:close-network-outline
+        # If sensor.status_check cannot be read, int(0) would give 0 and the
+        # inverted bits (linkage, EVU, SG) would read "on". A read error now shows
+        # as unavailable instead.
+        availability: "{{ has_value('sensor.status_check') }}"
+        state: >-
+          {% set v = state_attr('sensor.status_check_map','EVU_signal') %}
+          {{ v in ['on','1',1,True] }}
+
+      - name: "High pressure switch"
+        unique_id: high_pressure_switch
+        device_class: problem
+        state: >-
+          {% set v = state_attr('sensor.status_check_map','High_pressure_switch') %}
+          {{ v in ['on','1',1,True] }}
+
+      - name: "Linkage switch"
+        unique_id: linkage_switch
+        device_class: connectivity
+        icon: mdi:close-network-outline
+        # If sensor.status_check cannot be read, int(0) would give 0 and the
+        # inverted bits (linkage, EVU, SG) would read "on". A read error now shows
+        # as unavailable instead.
+        availability: "{{ has_value('sensor.status_check') }}"
+        state: >-
+          {% set v = state_attr('sensor.status_check_map','Linkage_switch') %}
+          {{ v in ['on','1',1,True] }}
+
+      - name: "Low pressure switch"
+        unique_id: low_pressure_switch
+        device_class: problem
+        state: >-
+          {% set v = state_attr('sensor.status_check_map','Low_pressure_switch') %}
+          {{ v in ['on','1',1,True] }}
+
+      - name: "SG signal"
+        unique_id: sg_signal
+        device_class: connectivity
+        icon: mdi:close-network-outline
+        # If sensor.status_check cannot be read, int(0) would give 0 and the
+        # inverted bits (linkage, EVU, SG) would read "on". A read error now shows
+        # as unavailable instead.
+        availability: "{{ has_value('sensor.status_check') }}"
+        state: >-
+          {% set v = state_attr('sensor.status_check_map','SG_signal') %}
+          {{ v in ['on','1',1,True] }}
+
+      - name: "Water flow switch"
+        unique_id: water_flow_switch
+        device_class: problem
+        state: >-
+          {% set v = state_attr('sensor.status_check_map','Water_flow_switch') %}
+          {{ v in ['on','1',1,True] }}
+
+      - name: "Heating"
+        unique_id: heating
+        state: >
+          {{ is_state_attr('sensor.output_flag_2_map', '3-way_valve', 'Heating') 
+             and is_state('binary_sensor.compressor', 'on') 
+             and is_state('binary_sensor.defrosting', 'off') }}
+
+      - name: "Domestic hot water"
+        unique_id: domestic_hotwater
+        state: >
+          {{ is_state_attr('sensor.output_flag_2_map', '3-way_valve', 'DHW') 
+             and is_state('binary_sensor.compressor', 'on') 
+             and is_state('binary_sensor.defrosting', 'off') }}
+
+      # One line for the dashboard: on while any fault is active, off (and the
+      # text gone) when all are clear. 'latest' = the fault that came on last,
+      # '(+N)' if several. Same list as the fault notifications below.
+      - name: "Heat pump fault"
+        unique_id: heat_pump_fault
+        device_class: problem
+        icon: mdi:alert
+        state: >-
+          {% set active = expand([
+               'binary_sensor.ac_input_overcurrent',
+               'binary_sensor.ac_input_phase_loss',
+               'binary_sensor.ac_input_voltage_is_low',
+               'binary_sensor.communication_failure',
+               'binary_sensor.dc_bus_voltage_is_high',
+               'binary_sensor.dc_bus_voltage_is_low',
+               'binary_sensor.er03_water_flow_failure',
+               'binary_sensor.er05_high_pressure_fault',
+               'binary_sensor.er06_low_pressure_fault',
+               'binary_sensor.er10_frequency_conversion_module_communication_failure',
+               'binary_sensor.er12_exhaust_temp_too_high',
+               'binary_sensor.er14_water_tank_temp_sensor_fault',
+               'binary_sensor.er15_water_inlet_temp_sensor_fault',
+               'binary_sensor.er16_evaporator_coil_temp_sensor_fault',
+               'binary_sensor.er18_exhaust_temp_fault',
+               'binary_sensor.er21_ambiet_temp_sensor_fault',
+               'binary_sensor.er23_cooling_outlet_water_temp_supercooling_protection',
+               'binary_sensor.er27_outlet_water_temp_sensor_fault',
+               'binary_sensor.er29_return_gas_temp_sensor_fault',
+               'binary_sensor.er32_overheating_water_outlet',
+               'binary_sensor.er33_coil_temp_too_high',
+               'binary_sensor.er42_cooling_coil_temp_sensor_failure',
+               'binary_sensor.er64_dc_fan_1_fault',
+               'binary_sensor.er69_too_low_pressure_protection',
+               'binary_sensor.heat_sink_temperature_failure',
+               'binary_sensor.high_pressure_switch',
+               'binary_sensor.high_voltage_fault',
+               'binary_sensor.ipm_overcurrent',
+               'binary_sensor.ipm_temperature_is_too_high',
+               'binary_sensor.pfc_module_over_temperature',
+               'binary_sensor.press_output_phase_loss',
+               'binary_sensor.press_syncronization_abnormality',
+               'binary_sensor.secondary_anti_freeze',
+               'binary_sensor.the_heat_sink_temperature_is_too_high',
+               'binary_sensor.the_peak_current_of_the_press_is_too_high'
+             ]) | selectattr('state', 'eq', 'on') | list %}
+          {{ active | count > 0 }}
+        attributes:
+          latest: >-
+            {% set active = expand([
+               'binary_sensor.ac_input_overcurrent',
+               'binary_sensor.ac_input_phase_loss',
+               'binary_sensor.ac_input_voltage_is_low',
+               'binary_sensor.communication_failure',
+               'binary_sensor.dc_bus_voltage_is_high',
+               'binary_sensor.dc_bus_voltage_is_low',
+               'binary_sensor.er03_water_flow_failure',
+               'binary_sensor.er05_high_pressure_fault',
+               'binary_sensor.er06_low_pressure_fault',
+               'binary_sensor.er10_frequency_conversion_module_communication_failure',
+               'binary_sensor.er12_exhaust_temp_too_high',
+               'binary_sensor.er14_water_tank_temp_sensor_fault',
+               'binary_sensor.er15_water_inlet_temp_sensor_fault',
+               'binary_sensor.er16_evaporator_coil_temp_sensor_fault',
+               'binary_sensor.er18_exhaust_temp_fault',
+               'binary_sensor.er21_ambiet_temp_sensor_fault',
+               'binary_sensor.er23_cooling_outlet_water_temp_supercooling_protection',
+               'binary_sensor.er27_outlet_water_temp_sensor_fault',
+               'binary_sensor.er29_return_gas_temp_sensor_fault',
+               'binary_sensor.er32_overheating_water_outlet',
+               'binary_sensor.er33_coil_temp_too_high',
+               'binary_sensor.er42_cooling_coil_temp_sensor_failure',
+               'binary_sensor.er64_dc_fan_1_fault',
+               'binary_sensor.er69_too_low_pressure_protection',
+               'binary_sensor.heat_sink_temperature_failure',
+               'binary_sensor.high_pressure_switch',
+               'binary_sensor.high_voltage_fault',
+               'binary_sensor.ipm_overcurrent',
+               'binary_sensor.ipm_temperature_is_too_high',
+               'binary_sensor.pfc_module_over_temperature',
+               'binary_sensor.press_output_phase_loss',
+               'binary_sensor.press_syncronization_abnormality',
+               'binary_sensor.secondary_anti_freeze',
+               'binary_sensor.the_heat_sink_temperature_is_too_high',
+               'binary_sensor.the_peak_current_of_the_press_is_too_high'
+               ]) | selectattr('state', 'eq', 'on') | sort(attribute='last_changed', reverse=true) | list %}
+            {% if active %}{{ active[0].name }}{% if active | count > 1 %} (+{{ active | count - 1 }}){% endif %}{% endif %}
+
+  # Sensors
+  - sensor:
+
+      - name: "3-way valve"
+        unique_id: 3_way_valve
+        icon: mdi:pipe-valve
+        state: "{{ state_attr('sensor.output_flag_2_map', '3-way_valve') }}"
+
+      - name: "Aux eHeating"
+        unique_id: aux_eheating
+        state: "{{ state_attr('sensor.output_flag_2_map', 'Auxiliary_electric_heating') }}"
+
+      - name: "Auxiliary electronic expansion valve"
+        unique_id: auxiliary_electronic_expansion_valve
+        state: "{{ state_attr('sensor.control_flags_1_map', 'Auxiliary_electronic_expansion_valve') }}"
+
+      - name: "CO2 pressure sensor"
+        unique_id: co2_pressure_sensor
+        state: "{{ state_attr('sensor.control_flags_1_map', 'Co2-pressure_sensor') }}"
+
+      - name: "Cooling auxiliary allowed"
+        unique_id: cooling_auxiliary_allowed
+        state: "{{ state_attr('sensor.control_flags_1_map', 'Cooling_auxiliary_allowed') }}"
+
+      - name: "Four-way valve"
+        unique_id: four_way_valve
+        icon: mdi:valve
+        state: "{{ state_attr('sensor.output_flag_1_map', 'four-way_valve') }}"
+
+      - name: "Heating target temp adjustment"
+        unique_id: heating_target_temp_adjustment
+        state: "{{ state_attr('sensor.control_flags_1_map', 'Heating_Target_temp_adjustment') }}"
+
+      - name: "Reduced frequency"
+        unique_id: reduced_frequency
+        state: "{{ state_attr('sensor.control_flags_1_map', 'Reduced_frequency') }}"
+
+      - name: "Water pump"
+        unique_id: water_pump
+        icon: mdi:water-pump
+        state: "{{ state_attr('sensor.output_flag_3_map', 'Water_pump') }}"
+
+      - name: "Water tank eHeating"
+        unique_id: water_tank_eheat
+        icon: mdi:water-boiler
+        state: "{{ state_attr('sensor.output_flag_2_map', 'Water_tank_eheater') }}"
+
+      # Bit map sensors
+      - name: "Parameter Flag 1 map"
+        unique_id: parameter_flag_1_map
+        state: "{{ states('sensor.parameter_flags_1') | int(0) }}"
+        state_class: measurement
+        attributes:
+          Power: "{% if states('sensor.parameter_flags_1') | int(0) | bitwise_and(1) %}on{% else %}off{% endif %}"
+          A41_Main_Expansion_Valve_Model_Selection: "{% if states('sensor.parameter_flags_1') | int(0) | bitwise_and(2) %}Manual{% else %}Auto{% endif %}"
+          Manual_frequency_switches: "{% if states('sensor.parameter_flags_1') | int(0) | bitwise_and(4) %}on{% else %}off{% endif %}"
+          bit3: "{% if states('sensor.parameter_flags_1') | int(0) | bitwise_and(8) %}on{% else %}off{% endif %}"
+          C01_Constant_temperature_pump_selection: "{% if states('sensor.parameter_flags_1') | int(0) | bitwise_and(16) %}Non-stop{% else %}Stop{% endif %}"
+          B01_Auxiliary_Expansion_valve_model_selection: "{% if states('sensor.parameter_flags_1') | int(0) | bitwise_and(32) %}Manual{% else %}Auto{% endif %}"
+          A45_Expansion_valve_initial_opening_adjustment_mode: "{% if states('sensor.parameter_flags_1') | int(0) | bitwise_and(64) %}Adjustable{% else %}Fixed{% endif %}"
+          bit7: "{% if states('sensor.parameter_flags_1') | int(0) | bitwise_and(128) %}on{% else %}off{% endif %}"
+
+      - name: "Control Flags 1 map"
+        unique_id: control_flags_1_map
+        state: "{{ states('sensor.control_flags_1') | int(0) }}"
+        state_class: measurement
+        attributes:
+          Reduced_frequency: "{% if states('sensor.control_flags_1') | int(0) | bitwise_and(1) %}Reduced{% else %}Fixed{% endif %}"
+          Co2-pressure_sensor: "{% if states('sensor.control_flags_1') | int(0) | bitwise_and(2) %}Valid{% else %}Invalid{% endif %}"
+          Cooling_auxiliary_allowed: "{% if states('sensor.control_flags_1') | int(0) | bitwise_and(4) %}Not allowed{% else %}Allowed{% endif %}"
+          Auxiliary_electronic_expansion_valve: "{% if states('sensor.control_flags_1') | int(0) | bitwise_and(8) %}Exhaust super heat{% else %}Enthalpy super heat{% endif %}"
+          Powerful_mode: "{% if states('sensor.control_flags_1') | int(0) | bitwise_and(16) %}on{% else %}off{% endif %}"
+          Silent_mode: "{% if states('sensor.control_flags_1') | int(0) | bitwise_and(32) %}on{% else %}off{% endif %}"
+          Heating_Target_temp_adjustment: "{% if states('sensor.control_flags_1') | int(0) | bitwise_and(64) %}Enabled{% else %}Disabled{% endif %}"
+          bit7: "{% if states('sensor.control_flags_1') | int(0) | bitwise_and(128) %}on{% else %}off{% endif %}"
+
+      - name: "Control Flags 2 map"
+        unique_id: control_flags_2_map
+        state: "{{ states('sensor.control_flags_2') | int(0) }}"
+        state_class: measurement
+        attributes:
+          Main_valve_mode_selection: "{% if states('sensor.control_flags_2') | int(0) | bitwise_and(1) %}1{% else %}0{% endif %}"
+          vacation_mode: >
+              {{ (states('sensor.control_flags_2')|int(0) | bitwise_and(2)) > 0 }}
+          Smart_grid: "{% if states('sensor.control_flags_2') | int(0) | bitwise_and(4) %}1{% else %}0{% endif %}"
+          bit3: "{% if states('sensor.control_flags_2') | int(0) | bitwise_and(8) %}1{% else %}0{% endif %}"
+          bit4: "{% if states('sensor.control_flags_2') | int(0) | bitwise_and(16) %}1{% else %}0{% endif %}"
+          bit5: "{% if states('sensor.control_flags_2') | int(0) | bitwise_and(32) %}1{% else %}0{% endif %}"
+          bit6: "{% if states('sensor.control_flags_2') | int(0) | bitwise_and(64) %}1{% else %}0{% endif %}"
+          bit7: "{% if states('sensor.control_flags_2') | int(0) | bitwise_and(128) %}1{% else %}0{% endif %}"
+
+      - name: "Mode Selection map"
+        unique_id: mode_selection_map
+        state: "{{ states('sensor.mode_selection') | int(0) }}"
+        state_class: measurement
+        attributes:
+          Hot_water: "{% if states('sensor.mode_selection') | int(0) | bitwise_and(1) %}on{% else %}off{% endif %}"
+          bit1: "{% if states('sensor.mode_selection') | int(0) | bitwise_and(2) %}on{% else %}off{% endif %}"
+          Heating: "{% if states('sensor.mode_selection') | int(0) | bitwise_and(4) %}on{% else %}off{% endif %}"
+          Cooling: "{% if states('sensor.mode_selection') | int(0) | bitwise_and(8) %}on{% else %}off{% endif %}"
+          DC_Fan1: "{% if states('sensor.mode_selection') | int(0) | bitwise_and(16) %}on{% else %}off{% endif %}"
+          DC_Fan2: "{% if states('sensor.mode_selection') | int(0) | bitwise_and(32) %}on{% else %}off{% endif %}"
+          bit6: "{% if states('sensor.mode_selection') | int(0) | bitwise_and(64) %}on{% else %}off{% endif %}"
+          Defrosting: "{% if states('sensor.mode_selection') | int(0) | bitwise_and(128) %}on{% else %}off{% endif %}"
+
+      - name: "Output flag 1 map"
+        unique_id: output_flag_1_map
+        state: "{{ states('sensor.output_flag_1') | int(0) }}"
+        state_class: measurement
+        attributes:
+          compressor: "{% if states('sensor.output_flag_1') | int(0) | bitwise_and(1) %}on{% else %}off{% endif %}"
+          bit1: "{% if states('sensor.output_flag_1') | int(0) | bitwise_and(2) %}on{% else %}off{% endif %}"
+          bit2: "{% if states('sensor.output_flag_1') | int(0) | bitwise_and(4) %}on{% else %}off{% endif %}"
+          bit3: "{% if states('sensor.output_flag_1') | int(0) | bitwise_and(8) %}on{% else %}off{% endif %}"
+          bit4: "{% if states('sensor.output_flag_1') | int(0) | bitwise_and(16) %}on{% else %}off{% endif %}"
+          Fans: "{% if states('sensor.output_flag_1') | int(0) | bitwise_and(32) %}on{% else %}off{% endif %}"
+          four-way_valve: "{% if states('sensor.output_flag_1') | int(0) | bitwise_and(64) %}on{% else %}off{% endif %}"
+          bit7: "{% if states('sensor.output_flag_1') | int(0) | bitwise_and(128) %}on{% else %}off{% endif %}"
+
+      - name: "Output flag 2 map"
+        unique_id: output_flag_2_map
+        state: "{{ states('sensor.output_flag_2') | int(0) }}"
+        state_class: measurement
+        attributes:
+          Chassis_electric_heating: "{% if states('sensor.output_flag_2') | int(0) | bitwise_and(1) %}on{% else %}off{% endif %}"
+          bit1: "{% if states('sensor.output_flag_2') | int(0) | bitwise_and(2) %}on{% else %}off{% endif %}"
+          bit2: "{% if states('sensor.output_flag_2') | int(0) | bitwise_and(4) %}on{% else %}off{% endif %}"
+          bit3: "{% if states('sensor.output_flag_2') | int(0) | bitwise_and(8) %}on{% else %}off{% endif %}"
+          bit4: "{% if states('sensor.output_flag_2') | int(0) | bitwise_and(16) %}on{% else %}off{% endif %}"
+          Auxiliary_electric_heating: "{% if states('sensor.output_flag_2') | int(0) | bitwise_and(32) %}on{% else %}off{% endif %}"
+          3-way_valve: "{% if states('sensor.output_flag_2') | int(0) | bitwise_and(64) %}DHW{% else %}Heating{% endif %}"
+          Water_tank_eheater: "{% if states('sensor.output_flag_2') | int(0) | bitwise_and(128) %}on{% else %}off{% endif %}"
+
+      - name: "Output flag 3 map"
+        unique_id: output_flag_3_map
+        state: "{{ states('sensor.output_flag_3') | int(0) }}"
+        state_class: measurement
+        attributes:
+          Water_pump: "{% if states('sensor.output_flag_3') | int(0) | bitwise_and(1) %}on{% else %}off{% endif %}"
+          Electric_crankshaft_heating: "{% if states('sensor.output_flag_3') | int(0) | bitwise_and(2) %}on{% else %}off{% endif %}"
+          bit2: "{% if states('sensor.output_flag_3') | int(0) | bitwise_and(4) %}on{% else %}off{% endif %}"
+          bit3: "{% if states('sensor.output_flag_3') | int(0) | bitwise_and(8) %}on{% else %}off{% endif %}"
+          bit4: "{% if states('sensor.output_flag_3') | int(0) | bitwise_and(16) %}on{% else %}off{% endif %}"
+          bit5: "{% if states('sensor.output_flag_3') | int(0) | bitwise_and(32) %}on{% else %}off{% endif %}"
+          bit6: "{% if states('sensor.output_flag_3') | int(0) | bitwise_and(64) %}on{% else %}off{% endif %}"
+          bit7: "{% if states('sensor.output_flag_3') | int(0) | bitwise_and(128) %}on{% else %}off{% endif %}"
+
+      - name: "Fault flag 1 map"
+        unique_id: fault_flag_1_map
+        state: "{{ states('sensor.Fault_flag_1') | int(0) }}"
+        state_class: measurement
+        attributes:
+          Er14_water_tank_temp_sensor_fault: "{% if states('sensor.Fault_flag_1') | int(0) | bitwise_and(1) %}on{% else %}off{% endif %}"
+          Er21_ambiet_temp_sensor_fault: "{% if states('sensor.Fault_flag_1') | int(0) | bitwise_and(2) %}on{% else %}off{% endif %}"
+          Er16_evaporator_coil_temp_sensor_fault: "{% if states('sensor.Fault_flag_1') | int(0) | bitwise_and(4) %}on{% else %}off{% endif %}"
+          bit3: "{% if states('sensor.Fault_flag_1') | int(0) | bitwise_and(8) %}on{% else %}off{% endif %}"
+          Er27_outlet_water_temp_sensor_fault: "{% if states('sensor.Fault_flag_1') | int(0) | bitwise_and(16) %}on{% else %}off{% endif %}"
+          Er05_high_pressure_fault: "{% if states('sensor.Fault_flag_1') | int(0) | bitwise_and(32) %}on{% else %}off{% endif %}"
+          Er06_low_pressure_fault: "{% if states('sensor.Fault_flag_1') | int(0) | bitwise_and(64) %}on{% else %}off{% endif %}"
+          bit7: "{% if states('sensor.Fault_flag_1') | int(0) | bitwise_and(128) %}on{% else %}off{% endif %}"
+
+      - name: "Fault flag 2 map"
+        unique_id: fault_flag_2_map
+        state: "{{ states('sensor.Fault_flag_2') | int(0) }}"
+        state_class: measurement
+        attributes:
+          Er03_water_flow_failure: "{% if states('sensor.Fault_flag_2') | int(0) | bitwise_and(1) %}on{% else %}off{% endif %}"
+          bit2: "{% if states('sensor.Fault_flag_2') | int(0) | bitwise_and(2) %}on{% else %}off{% endif %}"
+          Er32_overheating_water_outlet: "{% if states('sensor.Fault_flag_2') | int(0) | bitwise_and(4) %}on{% else %}off{% endif %}"
+          bit3: "{% if states('sensor.Fault_flag_2') | int(0) | bitwise_and(8) %}on{% else %}off{% endif %}"
+          bit4: "{% if states('sensor.Fault_flag_2') | int(0) | bitwise_and(16) %}on{% else %}off{% endif %}"
+          bit5: "{% if states('sensor.Fault_flag_2') | int(0) | bitwise_and(32) %}on{% else %}off{% endif %}"
+          bit6: "{% if states('sensor.Fault_flag_2') | int(0) | bitwise_and(64) %}on{% else %}off{% endif %}"
+          bit7: "{% if states('sensor.Fault_flag_2') | int(0) | bitwise_and(128) %}on{% else %}off{% endif %}"
+
+      - name: "Fault flag 3 map"
+        unique_id: fault_flag_3_map
+        state: "{{ states('sensor.Fault_flag_3') | int(0) }}"
+        state_class: measurement
+        attributes:
+          bit0: "{% if states('sensor.Fault_flag_3') | int(0) | bitwise_and(1) %}on{% else %}off{% endif %}"
+          bit1: "{% if states('sensor.Fault_flag_3') | int(0) | bitwise_and(2) %}on{% else %}off{% endif %}"
+          bit2: "{% if states('sensor.Fault_flag_3') | int(0) | bitwise_and(4) %}on{% else %}off{% endif %}"
+          bit3: "{% if states('sensor.Fault_flag_3') | int(0) | bitwise_and(8) %}on{% else %}off{% endif %}"
+          bit4: "{% if states('sensor.Fault_flag_3') | int(0) | bitwise_and(16) %}on{% else %}off{% endif %}"
+          bit5: "{% if states('sensor.Fault_flag_3') | int(0) | bitwise_and(32) %}on{% else %}off{% endif %}"
+          Er18_exhaust_temp_fault: "{% if states('sensor.Fault_flag_3') | int(0) | bitwise_and(64) %}on{% else %}off{% endif %}"
+          bit7: "{% if states('sensor.Fault_flag_3') | int(0) | bitwise_and(128) %}on{% else %}off{% endif %}"
+
+      - name: "Fault flag 4 map"
+        unique_id: fault_flag_4_map
+        state: "{{ states('sensor.Fault_flag_4') | int(0) }}"
+        state_class: measurement
+        attributes:
+          Er15_water_inlet_temp_sensor_fault: "{% if states('sensor.Fault_flag_4') | int(0) | bitwise_and(1) %}on{% else %}off{% endif %}"
+          Er12_Exhaust_temp_too_high: "{% if states('sensor.Fault_flag_4') | int(0) | bitwise_and(2) %}on{% else %}off{% endif %}"
+          bit2: "{% if states('sensor.Fault_flag_4') | int(0) | bitwise_and(4) %}on{% else %}off{% endif %}"
+          bit3: "{% if states('sensor.Fault_flag_4') | int(0) | bitwise_and(8) %}on{% else %}off{% endif %}"
+          bit4: "{% if states('sensor.Fault_flag_4') | int(0) | bitwise_and(16) %}on{% else %}off{% endif %}"
+          Er23_cooling_outlet_water_temp_supercooling_protection: "{% if states('sensor.Fault_flag_4') | int(0) | bitwise_and(32) %}on{% else %}off{% endif %}"
+          Er29_Return_gas_temp_sensor_fault: "{% if states('sensor.Fault_flag_4') | int(0) | bitwise_and(64) %}on{% else %}off{% endif %}"
+          bit7: "{% if states('sensor.Fault_flag_4') | int(0) | bitwise_and(128) %}on{% else %}off{% endif %}"
+
+      - name: "Fault flag 5 map"
+        unique_id: fault_flag_5_map
+        state: "{{ states('sensor.Fault_flag_5') | int(0) }}"
+        state_class: measurement
+        attributes:
+          Er69_too_low_pressure_protection: "{% if states('sensor.Fault_flag_5') | int(0) | bitwise_and(1) %}on{% else %}off{% endif %}"
+          bit1: "{% if states('sensor.Fault_flag_5') | int(0) | bitwise_and(2) %}on{% else %}off{% endif %}"
+          Er33_coil_temp_too_high: "{% if states('sensor.Fault_flag_5') | int(0) | bitwise_and(4) %}on{% else %}off{% endif %}"
+          Er42_cooling_coil_temp_sensor_failure: "{% if states('sensor.Fault_flag_5') | int(0) | bitwise_and(8) %}on{% else %}off{% endif %}"
+          bit4: "{% if states('sensor.Fault_flag_5') | int(0) | bitwise_and(16) %}on{% else %}off{% endif %}"
+          bit5: "{% if states('sensor.Fault_flag_5') | int(0) | bitwise_and(32) %}on{% else %}off{% endif %}"
+          bit6: "{% if states('sensor.Fault_flag_5') | int(0) | bitwise_and(64) %}on{% else %}off{% endif %}"
+          Er67_low_pressure_switch_failure: "{% if states('sensor.Fault_flag_5') | int(0) | bitwise_and(128) %}on{% else %}off{% endif %}"
+
+      - name: "Fault flag 6 map"
+        unique_id: fault_flag_6_map
+        state: "{{ states('sensor.Fault_flag_6') | int(0) }}"
+        state_class: measurement
+        attributes:
+          bit0: "{% if states('sensor.Fault_flag_6') | int(0) | bitwise_and(1) %}on{% else %}off{% endif %}"
+          bit1: "{% if states('sensor.Fault_flag_6') | int(0) | bitwise_and(2) %}on{% else %}off{% endif %}"
+          bit2: "{% if states('sensor.Fault_flag_6') | int(0) | bitwise_and(4) %}on{% else %}off{% endif %}"
+          bit3: "{% if states('sensor.Fault_flag_6') | int(0) | bitwise_and(8) %}on{% else %}off{% endif %}"
+          Secondary_anti_freeze: "{% if states('sensor.Fault_flag_6') | int(0) | bitwise_and(16) %}on{% else %}off{% endif %}"
+          Level_1_anti_freeze: "{% if states('sensor.Fault_flag_6') | int(0) | bitwise_and(32) %}on{% else %}off{% endif %}"
+          bit6: "{% if states('sensor.Fault_flag_6') | int(0) | bitwise_and(64) %}on{% else %}off{% endif %}"
+          bit7: "{% if states('sensor.Fault_flag_6') | int(0) | bitwise_and(128) %}on{% else %}off{% endif %}"
+
+      - name: "Fault flag 7 map"
+        unique_id: fault_flag_7_map
+        state: "{{ states('sensor.Fault_flag_7') | int(0) }}"
+        state_class: measurement
+        attributes:
+          bit0: "{% if states('sensor.Fault_flag_7') | int(0) | bitwise_and(1) %}on{% else %}off{% endif %}"
+          bit1: "{% if states('sensor.Fault_flag_7') | int(0) | bitwise_and(2) %}on{% else %}off{% endif %}"
+          bit2: "{% if states('sensor.Fault_flag_7') | int(0) | bitwise_and(4) %}on{% else %}off{% endif %}"
+          bit3: "{% if states('sensor.Fault_flag_7') | int(0) | bitwise_and(8) %}on{% else %}off{% endif %}"
+          Er10_Frequency_conversion_module_communication_failure: "{% if states('sensor.Fault_flag_7') | int(0) | bitwise_and(16) %}on{% else %}off{% endif %}"
+          Er66_DC_fan_2_fault: "{% if states('sensor.Fault_flag_7') | int(0) | bitwise_and(32) %}on{% else %}off{% endif %}"
+          Er64_DC_fan_1_fault: "{% if states('sensor.Fault_flag_7') | int(0) | bitwise_and(64) %}on{% else %}off{% endif %}"
+          bit7: "{% if states('sensor.Fault_flag_7') | int(0) | bitwise_and(128) %}on{% else %}off{% endif %}"
+
+      - name: "Low 8bit inverter fault map"
+        unique_id: low_8bit_inverter_fault_map
+        state: "{{ states('sensor.low_8bit_inverter_fault') | int(0) }}"
+        state_class: measurement
+        attributes:
+          IPM_overcurrent: "{% if states('sensor.low_8bit_inverter_fault') | int(0) | bitwise_and(1) %}on{% else %}off{% endif %}"
+          Press_syncronization_abnormality: "{% if states('sensor.low_8bit_inverter_fault') | int(0) | bitwise_and(2) %}on{% else %}off{% endif %}"
+          bit2: "{% if states('sensor.low_8bit_inverter_fault') | int(0) | bitwise_and(4) %}on{% else %}off{% endif %}"
+          Press_output_phase_loss: "{% if states('sensor.low_8bit_inverter_fault') | int(0) | bitwise_and(8) %}on{% else %}off{% endif %}"
+          DC_bus_voltage_is_low: "{% if states('sensor.low_8bit_inverter_fault') | int(0) | bitwise_and(16) %}on{% else %}off{% endif %}"
+          DC_bus_voltage_is_high: "{% if states('sensor.low_8bit_inverter_fault') | int(0) | bitwise_and(32) %}on{% else %}off{% endif %}"
+          The_heat_sink_temperature_is_too_high: "{% if states('sensor.low_8bit_inverter_fault') | int(0) | bitwise_and(64) %}on{% else %}off{% endif %}"
+          Heat_sink_temperature_failure: "{% if states('sensor.low_8bit_inverter_fault') | int(0) | bitwise_and(128) %}on{% else %}off{% endif %}"
+
+      - name: "High 8bit inverter fault map"
+        unique_id: high_8bit_inverter_fault_map
+        state: "{{ states('sensor.high_8bit_inverter_fault') | int(0) }}"
+        state_class: measurement
+        attributes:
+          Communication_failure: "{% if states('sensor.high_8bit_inverter_fault') | int(0) | bitwise_and(1) %}on{% else %}off{% endif %}"
+          AC_input_phase_loss: "{% if states('sensor.high_8bit_inverter_fault') | int(0) | bitwise_and(2) %}on{% else %}off{% endif %}"
+          AC_input_overcurrent: "{% if states('sensor.high_8bit_inverter_fault') | int(0) | bitwise_and(4) %}on{% else %}off{% endif %}"
+          AC_input_voltage_is_low: "{% if states('sensor.high_8bit_inverter_fault') | int(0) | bitwise_and(8) %}on{% else %}off{% endif %}"
+          IPM_temperature_is_too_high: "{% if states('sensor.high_8bit_inverter_fault') | int(0) | bitwise_and(16) %}on{% else %}off{% endif %}"
+          High_voltage_fault: "{% if states('sensor.high_8bit_inverter_fault') | int(0) | bitwise_and(32) %}on{% else %}off{% endif %}"
+          The_peak_current_of_the_press_is_too_high: "{% if states('sensor.high_8bit_inverter_fault') | int(0) | bitwise_and(64) %}on{% else %}off{% endif %}"
+          PFC_module_over_temperature: "{% if states('sensor.high_8bit_inverter_fault') | int(0) | bitwise_and(128) %}on{% else %}off{% endif %}"
+
+      - name: "Status check map"
+        unique_id: status_check_map
+        # If sensor.status_check cannot be read, int(0) would give 0 and the
+        # inverted bits (linkage, EVU, SG) would read "on". A read error now shows
+        # as unavailable instead.
+        availability: "{{ has_value('sensor.status_check') }}"
+        state: "{{ states('sensor.status_check') | int(0) }}"
+        state_class: measurement
+        attributes:
+          High_pressure_switch: "{% if states('sensor.status_check') | int(0) | bitwise_and(1) %}on{% else %}off{% endif %}"
+          Low_pressure_switch: "{% if states('sensor.status_check') | int(0) | bitwise_and(2) %}on{% else %}off{% endif %}"
+          Water_flow_switch: "{% if states('sensor.status_check') | int(0) | bitwise_and(4) %}on{% else %}off{% endif %}"
+          Linkage_switch: "{% if states('sensor.status_check') | int(0) | bitwise_and(8) %}off{% else %}on{% endif %}"
+          bit4: "{% if states('sensor.status_check') | int(0) | bitwise_and(16) %}on{% else %}off{% endif %}"
+          EVU_signal: "{% if states('sensor.status_check') | int(0) | bitwise_and(32) %}off{% else %}on{% endif %}"
+          SG_signal: "{% if states('sensor.status_check') | int(0) | bitwise_and(64) %}off{% else %}on{% endif %}"
+          bit7: "{% if states('sensor.status_check') | int(0) | bitwise_and(128) %}on{% else %}off{% endif %}"
+
+automation:
+  - id: ultimate_handle_setpoint_temperature_change
+    alias: Ultimate Handle Setpoint(default=None) Temperature Change
+    description: ''
+    triggers:
+      - trigger: state
+        entity_id:
+          - sensor.heating_temperature_diff
+          - sensor.dhw_temperature_diff
+          - sensor.heating_set_temperature
+          - sensor.hot_water_set_temperature
+          - sensor.cooling_set_temperature
+          - sensor.vacation_set_temperature
+    conditions:
+      - condition: template
+        value_template: >
+          {{ trigger.to_state is not none
+            and trigger.to_state.state not in ['unknown', 'unavailable', '', None]
+            and (trigger.to_state.state | float(none)) is not none
+            and (trigger.to_state.state | float) > -50
+            and (trigger.to_state.state | float) < 100 }}
+    actions:
+      - action: input_number.set_value
+        data:
+          entity_id: input_number.{{ trigger.to_state.object_id }}
+          value: '{{ trigger.to_state.state }}'
+    max: 20
+    mode: queued
+
+
+
+  - id: ultimate_handle_work_mode_option_change
+    alias: Ultimate Handle Work Mode option change for UI
+    # Variables are computed only after the condition, so an 'unavailable'
+    # reading (e.g. during a Modbus reload) cannot break the automation. This only
+    # syncs the display; the device is written only on a user change (below).
+    triggers:
+      - trigger: state
+        entity_id: sensor.work_mode
+
+    conditions:
+      - condition: template
+        value_template: >
+          {{ trigger.to_state is not none
+            and trigger.to_state.state not in ['unknown','unavailable','',None]
+            and (trigger.to_state.state | int(default=-1)) != -1 }}
+
+    actions:
+      - variables:
+          # input_select.work_mode
+          input_select_id: "input_select.{{ trigger.to_state.object_id }}"
+          # sensor.work_mode -> int (0-4)
+          idx: "{{ trigger.to_state.state | int(0) }}"
+      - action: input_select.select_option
+        target:
+          entity_id: "{{ input_select_id }}"
+        data:
+          option: >
+            {{ state_attr(input_select_id, 'options')[ idx ] }}
+
+    mode: queued
+    max: 20
+
+
+  - id: ultimate_handle_operation_mode_set_to_ui
+    alias: Ultimate Handle operation mode set to UI
+    # Shows a mode change made on the heat pump's own panel in the UI. Without
+    # this it would appear only at the next Home Assistant start.
+    #
+    # ZERO GUARD: sensor.control_flags_1_map occasionally drops to 0 for a few
+    # seconds. Both mode bits then read off and the template below would compute
+    # 'Smart', which would make 'Ultimate Update Operation Mode from UI' write
+    # register 1 and really change the heat pump's mode because of a read error.
+    # Values > 0 pass, 0 does not.
+    #
+    # No loop: the device is written only when a person changes the value in the
+    # UI and the new value differs, so syncing the UI from the device never
+    # causes a Modbus write.
+    triggers:
+      - trigger: state
+        entity_id: sensor.control_flags_1_map
+    conditions:
+      - condition: template
+        value_template: >
+          {{ trigger.to_state is not none
+            and trigger.to_state.state not in ['unknown', 'unavailable', '', None]
+            and (trigger.to_state.state | string) != ''
+            and (trigger.to_state.state | int(0)) > 0
+          }}
+
+    actions:
+      - action: input_select.select_option
+        data:
+          option: >
+            {% if state_attr('sensor.control_flags_1_map', 'Powerful_mode') == 'on' %}
+              Powerful
+            {% elif state_attr('sensor.control_flags_1_map', 'Silent_mode') == 'on' %}
+              Silent
+            {% else %}
+              Smart
+            {% endif %}
+        target:
+          entity_id: input_select.operation_mode
+    mode: single
+    
+  - id: ultimate_heat_pump_error
+    alias: Ultimate Heat pump Error
+    triggers:
+      - entity_id:
+          - binary_sensor.high_pressure_switch
+          - binary_sensor.er05_high_pressure_fault
+          - binary_sensor.er10_frequency_conversion_module_communication_failure
+          - binary_sensor.er12_exhaust_temp_too_high
+          - binary_sensor.er14_water_tank_temp_sensor_fault
+          - binary_sensor.er15_water_inlet_temp_sensor_fault
+          - binary_sensor.er16_evaporator_coil_temp_sensor_fault
+          - binary_sensor.er18_exhaust_temp_fault
+          - binary_sensor.er21_ambiet_temp_sensor_fault
+          - binary_sensor.er23_cooling_outlet_water_temp_supercooling_protection
+          - binary_sensor.er27_outlet_water_temp_sensor_fault
+          - binary_sensor.er29_return_gas_temp_sensor_fault
+          - binary_sensor.er32_overheating_water_outlet
+          - binary_sensor.er33_coil_temp_too_high
+          - binary_sensor.er42_cooling_coil_temp_sensor_failure
+          - binary_sensor.er64_dc_fan_1_fault
+          - binary_sensor.er69_too_low_pressure_protection
+          - binary_sensor.ipm_overcurrent
+          - binary_sensor.press_syncronization_abnormality
+          - binary_sensor.press_output_phase_loss
+          - binary_sensor.dc_bus_voltage_is_high
+          - binary_sensor.dc_bus_voltage_is_low
+          - binary_sensor.heat_sink_temperature_failure
+          - binary_sensor.the_heat_sink_temperature_is_too_high
+          - binary_sensor.communication_failure
+          - binary_sensor.ac_input_phase_loss
+          - binary_sensor.ac_input_overcurrent
+          - binary_sensor.ac_input_voltage_is_low
+          - binary_sensor.ipm_temperature_is_too_high
+          - binary_sensor.high_voltage_fault
+          - binary_sensor.the_peak_current_of_the_press_is_too_high
+          - binary_sensor.pfc_module_over_temperature
+        trigger: state
+        from: 'off'
+        to: 'on'
+        for:
+          hours: 0
+          minutes: 0
+          seconds: 6
+    conditions:
+      - condition: template
+        value_template: >
+          {{ (as_timestamp(now()) - as_timestamp(states('sensor.last_boot'), 0)) > 60 }}
+
+      - condition: template
+        value_template: >
+          {{ trigger.to_state is not none
+            and trigger.to_state.state not in ['unknown', 'unavailable', '', None] }}
+    actions:
+      - action: notify.persistent_notification
+        data:
+          message: '{{ trigger.to_state.name }}'
+          title: Heat Pump Fault
+      - action: notify.notify
+        data:
+          message: '{{ trigger.to_state.name }}'
+          title: Heat Pump Fault
+    mode: parallel
+  
+  - id: ultimate_update_vacation_mode_from_control_flags_2_map
+    alias: Ultimate Update Vacation Mode from Control Flags 2 Map
+    # WRITES ONLY ON A USER CHANGE. Syncing from the device (Ultimate Sync
+    # Vacation Mode Input Boolean) changes the boolean in an automation context,
+    # so it never writes. The flag register must also have been read as a number.
+    triggers:
+      - entity_id: input_boolean.vacation_mode
+        trigger: state
+        from: 'off'
+        to: 'on'
+      - entity_id: input_boolean.vacation_mode
+        trigger: state
+        from: 'on'
+        to: 'off'
+    conditions:
+      - condition: template
+        alias: Changed by a person in the UI, not by an automation
+        value_template: '{{ trigger.to_state.context.user_id is not none }}'
+      - condition: template
+        value_template: >
+          {{ states('sensor.control_flags_2_map') | int(-1) >= 0 }}
+      - condition: template
+        value_template: >
+          {{ states('binary_sensor.vacation_mode') in ['on', 'off']
+             and states('input_boolean.vacation_mode') != states('binary_sensor.vacation_mode') }}
+    actions:
+      - variables:
+          bit3: '{{ 1 if is_state_attr(''sensor.control_flags_2_map'', ''bit3'', ''1'') else 0 }}'
+          bit4: '{{ 1 if is_state_attr(''sensor.control_flags_2_map'', ''bit4'', ''1'') else 0 }}'
+          bit5: '{{ 1 if is_state_attr(''sensor.control_flags_2_map'', ''bit5'', ''1'') else 0 }}'
+          bit6: '{{ 1 if is_state_attr(''sensor.control_flags_2_map'', ''bit6'', ''1'') else 0 }}'
+          bit7: '{{ 1 if is_state_attr(''sensor.control_flags_2_map'', ''bit7'', ''1'') else 0 }}'
+          main_valve_mode: '{{ 1 if is_state_attr(''sensor.control_flags_2_map'', ''Main_valve_mode_selection'', ''1'') else 0 }}'
+          smart_grid: '{{ 1 if is_state_attr(''sensor.control_flags_2_map'', ''Smart_grid'', ''1'') else 0 }}'
+          vacation_mode: '{{ 1 if is_state(''input_boolean.vacation_mode'', ''on'') else 0 }}'
+      - variables:
+          new_value: '{{ main_valve_mode }}'
+      - variables:
+          new_value: '{{ new_value + (vacation_mode) * 2 }}'
+      - variables:
+          new_value: '{{ new_value + (smart_grid) * 4 }}'
+      - variables:
+          new_value: '{{ new_value + (bit3) * 8 }}'
+      - variables:
+          new_value: '{{ new_value + (bit4) * 16 }}'
+      - variables:
+          new_value: '{{ new_value + (bit5) * 32 }}'
+      - variables:
+          new_value: '{{ new_value + (bit6) * 64 }}'
+      - variables:
+          new_value: '{{ new_value + (bit7) * 128 }}'
+      - variables:
+          current_value: "{{ states('sensor.control_flags_2_map') | int(-1) }}"
+      - choose:
+          - conditions:
+              - condition: template
+                value_template: '{{ current_value >= 0 and new_value | int != current_value }}'
+            sequence:
+              - action: modbus.write_register
+                data:
+                  address: 2
+                  hub: ultimate
+                  unit: 1
+                  value: '{{ new_value }}'
+    mode: single
+  
+  - id: ultimate_critical_failure_notification
+    alias: Ultimate Critical failure Notification
+    triggers:
+      - entity_id:
+          - binary_sensor.er03_water_flow_failure
+          - binary_sensor.er06_low_pressure_fault
+          - binary_sensor.secondary_anti_freeze
+        trigger: state
+        from: 'off'
+        to: 'on'
+        for:
+          hours: 0
+          minutes: 0
+          seconds: 6
+    conditions:
+      - condition: template
+        value_template: >
+          {{ (as_timestamp(now()) - as_timestamp(states('sensor.last_boot'), 0)) > 60 }}
+
+      - condition: template
+        value_template: >
+          {{ trigger.to_state is not none
+            and trigger.to_state.state not in ['unknown', 'unavailable', '', None] }}
+    actions:
+      - action: notify.notify
+        data:
+          data:
+            push:
+              critical: 1
+              interruption-level: critical
+              sound: alarm.wav
+              volume: 1
+          message: 'Critical Alert: {{ trigger.to_state.name }}'
+          title: Critical Alert!
+      - action: notify.persistent_notification
+        data:
+          message: 'Critical Alert: {{ trigger.to_state.name }}'
+          title: Critical Alert!
+    mode: single  
+  - id: ultimate_update_operation_mode_from_ui
+    alias: Ultimate Update Operation Mode from UI
+    # WRITES ONLY ON A USER CHANGE. The start-up sync could set 'Smart' before
+    # the flag register had been read; if the register was read right after, this
+    # would have written a new value and switched off the device's silent mode.
+    # Now: only a person's change, and the flag register must be read and > 0
+    # (the same zero guard as the display sync).
+    triggers:
+      - trigger: state
+        entity_id: input_select.operation_mode
+    mode: single
+    conditions:
+      - condition: template
+        value_template: >
+          {{ trigger.to_state is not none
+            and trigger.to_state.state not in ['unknown', 'unavailable', '', None]
+            and (trigger.to_state.state | string) != ''
+          }}
+      - condition: template
+        alias: Changed by a person in the UI, not by an automation
+        value_template: '{{ trigger.to_state.context.user_id is not none }}'
+      - condition: template
+        alias: Flag register read and not the 0 glitch
+        value_template: "{{ states('sensor.control_flags_1_map') | int(0) > 0 }}"
+    actions:
+      - variables:
+          silent_mode: "{{ 1 if is_state('input_select.operation_mode', 'Silent') else 0 }}"
+          smart_mode: "{{ 1 if is_state('input_select.operation_mode', 'Smart') else 0 }}"
+          powerful_mode: "{{ 1 if is_state('input_select.operation_mode', 'Powerful') else 0 }}"
+          auxiliary_electronic_expansion_valve: "{{ 1 if state_attr('sensor.control_flags_1_map', 'Auxiliary_electronic_expansion_valve') == 'Exhaust super heat' else 0 }}"
+          bit7: "{{ 1 if state_attr('sensor.control_flags_1_map', 'bit7') == 'on' else 0 }}"
+          co2_pressure_sensor: "{{ 1 if state_attr('sensor.control_flags_1_map', 'Co2-pressure_sensor') == 'Valid' else 0 }}"
+          cooling_auxiliary_allowed: "{{ 1 if state_attr('sensor.control_flags_1_map', 'Cooling_auxiliary_allowed') == 'Not allowed' else 0 }}"
+          current_value: "{{ states('sensor.control_flags_1_map') | int(0) }}"
+          heating_target_temp_adjustment: "{{ 1 if state_attr('sensor.control_flags_1_map', 'Heating_Target_temp_adjustment') == 'Enabled' else 0 }}"
+          reduced_frequency: "{{ 1 if state_attr('sensor.control_flags_1_map', 'Reduced_frequency') == 'Fixed' else 0 }}"
+          current_auxiliary_electronic_expansion_valve: "{{ (current_value // 8) % 2 }}"
+          current_bit7: "{{ (current_value // 128) % 2 }}"
+          current_co2_pressure_sensor: "{{ (current_value // 2) % 2 }}"
+          current_cooling_auxiliary_allowed: "{{ (current_value // 4) % 2 }}"
+          current_heating_target_temp_adjustment: "{{ (current_value // 64) % 2 }}"
+          current_reduced_frequency: "{{ current_value % 2 }}"
+          new_value: "{{ current_reduced_frequency + (current_co2_pressure_sensor * 2) + (current_cooling_auxiliary_allowed * 4) + (current_auxiliary_electronic_expansion_valve * 8) + (current_heating_target_temp_adjustment * 64) + (current_bit7 * 128) + (powerful_mode * 16) + (silent_mode * 32) }}"
+      - choose:
+          - conditions:
+              - condition: template
+                value_template: "{{ current_value > 0 and new_value | int != current_value }}"
+            sequence:
+              - action: modbus.write_register
+                data:
+                  address: 1
+                  hub: ultimate
+                  unit: 1
+                  value: "{{ new_value }}"
+
+  - id: Ultimate_sync_vacation_mode_input_boolean
+    alias: Ultimate Sync Vacation Mode Input Boolean
+    # Only when the device state has been read (on/off). Otherwise an
+    # 'unavailable' reading would fall to the default branch and turn the
+    # boolean off.
+    triggers:
+      - trigger: state
+        entity_id: binary_sensor.vacation_mode
+      - trigger: homeassistant
+        event: start
+    conditions:
+      - condition: template
+        value_template: "{{ states('binary_sensor.vacation_mode') in ['on', 'off'] }}"
+    actions:
+      - choose:
+          - conditions:
+              - condition: state
+                entity_id: binary_sensor.vacation_mode
+                state: 'on'
+            sequence:
+              - action: input_boolean.turn_on
+                target:
+                  entity_id: input_boolean.vacation_mode
+        default:
+          - action: input_boolean.turn_off
+            target:
+              entity_id: input_boolean.vacation_mode
+    mode: single
+
+  - id: ultimate_update_ui_on_startup
+    alias: Ultimate Update UI on Startup
+    triggers:
+      - trigger: homeassistant
+        event: start
+    conditions: []
+    # Waits until the device values have been read (at most 2 min) and sets each
+    # display value only if its source has been read. An unread sensor.work_mode
+    # would otherwise give 0 = DHW. Writing to the device also requires a user
+    # change, so this sync never writes.
+    actions:
+      - wait_template: >
+          {{ states('sensor.control_flags_1_map') | int(0) > 0
+             and states('sensor.work_mode') | int(-1) >= 0 }}
+        timeout: '00:02:00'
+        continue_on_timeout: true
+      - if:
+          - condition: template
+            value_template: "{{ states('sensor.control_flags_1_map') | int(0) > 0 }}"
+        then:
+          - action: input_select.select_option
+            data:
+              option: >
+                {% if state_attr('sensor.control_flags_1_map', 'Powerful_mode') == 'on' %}
+                  Powerful
+                {% elif state_attr('sensor.control_flags_1_map', 'Silent_mode') == 'on' %}
+                  Silent
+                {% else %}
+                  Smart
+                {% endif %}
+            target:
+              entity_id: input_select.operation_mode
+      - if:
+          - condition: template
+            value_template: >
+              {{ states('sensor.work_mode') | int(-1) >= 0
+                 and states('sensor.work_mode') | int(-1) < state_attr('input_select.work_mode', 'options') | count }}
+        then:
+          - action: input_select.select_option
+            data:
+              option: "{{ state_attr('input_select.work_mode', 'options')[ states('sensor.work_mode') | int ] }}"
+            target:
+              entity_id: input_select.work_mode
+      - repeat:
+          for_each:
+            - cooling_set_temperature
+            - dhw_temperature_diff
+            - heating_set_temperature
+            - heating_temperature_diff
+            - hot_water_set_temperature
+            - vacation_set_temperature
+          sequence:
+            - if:
+                - condition: template
+                  value_template: "{{ states('sensor.' ~ repeat.item) | is_number }}"
+              then:
+                - action: input_number.set_value
+                  data:
+                    entity_id: "input_number.{{ repeat.item }}"
+                    value: "{{ states('sensor.' ~ repeat.item) }}"
+    mode: single
+  - id: ultimate_update_modbus_value
+    alias: Ultimate Update modbus value
+    # WRITES ONLY ON A USER CHANGE: the heat pump's memory chip wears with every
+    # write. Conditions: a person changed the control in the UI (context.user_id),
+    # so automations that sync the device to the display never write; the
+    # device's current value has been read as a number; the register address is
+    # known; and the new value differs.
+    triggers:
+      - entity_id:
+          - input_select.work_mode
+          - input_number.cooling_set_temperature
+          - input_number.heating_set_temperature
+          - input_number.hot_water_set_temperature
+          - input_number.dhw_temperature_diff
+          - input_number.heating_temperature_diff
+          - input_number.vacation_set_temperature
+        trigger: state
+    conditions:
+      - condition: template
+        value_template: >
+          {{ trigger.to_state is not none
+            and trigger.from_state is not none
+            and trigger.to_state.state not in ['unknown', 'unavailable', '', None]
+            and (trigger.to_state.state | string) != ''
+            and trigger.to_state.state != trigger.from_state.state
+          }}
+      - condition: template
+        alias: Changed by a person in the UI, not by an automation
+        value_template: '{{ trigger.to_state.context.user_id is not none }}'
+    actions:
+      - variables:
+          sensor_id: sensor.{{ trigger.to_state.object_id }}
+          is_select: "{{ 'input_select' in trigger.to_state.entity_id }}"
+          new_value: "{% if is_select %}{{ state_attr(trigger.to_state.entity_id, 'options').index(trigger.to_state.state) }}{% else %}{{ trigger.to_state.state | float(none) }}{% endif %}"
+          old_value: "{{ states(sensor_id) | float(none) }}"
+          address: "{{ state_attr(sensor_id, 'address') }}"
+      - choose:
+          - conditions:
+              - condition: template
+                value_template: >
+                  {{ new_value is number and old_value is number
+                     and address is number
+                     and (new_value | float - old_value | float) | abs > 0.01 }}
+            sequence:
+              - action: modbus.write_register
+                data:
+                  address: '{{ address }}'
+                  hub: ultimate
+                  unit: 1
+                  value: '{{ new_value | round(0) | int }}'
+    mode: queued
+    max: 20
