@@ -161,6 +161,18 @@ The work mode, operation mode, setpoints and vacation mode in the dashboard are 
 
 The flag registers sometimes read as 0 for a moment. Mode changes are ignored while a register reads 0, so a read glitch cannot change the heat pump's mode.
 
+### Setpoint ranges
+
+The allowed setpoint ranges differ between Power World documents, apparently by controller version:
+
+| Parameter | Newer user manual | Communication protocol, controller manual, 2023 user manual |
+|---|---|---|
+| P05 Heating | 15–55 °C | 15–50 °C |
+| P03 Hot water | 28–55 °C | 28–60 °C |
+| P04 Cooling | 7–30 °C | 7–30 °C |
+
+The sliders follow the newer user manual. Check the parameter table in **your own unit's manual**, and if it differs, change `min:` / `max:` of `input_number.heating_set_temperature` and `input_number.hot_water_set_temperature` in the package to match. If the heat pump has a value outside the slider's range, the dashboard cannot show it, and Home Assistant logs an error.
+
 ### Known limitation: lost connection shows as "off"
 
 If Home Assistant loses the Modbus connection to the heat pump, the fault sensors and `binary_sensor.compressor` show `off` instead of `unavailable`. During a connection break, a fault would therefore not show or notify. The temperature sensors do show `unavailable`. If you want an alert for a lost connection, make an automation that triggers when `sensor.water_inlet_temperature` has been `unavailable` for a few minutes.
@@ -182,7 +194,7 @@ Changes in this version:
 - **Fault notifications are sent once.** Er03, Er06 and anti-freeze used to trigger both the normal and the critical notification. The water-flow switch no longer sends a separate notification about 10 s before Er03.
 - **The fault log text and its clear button are gone.** The log stopped recording after about five entries, because a text helper holds at most 255 characters. They are replaced by `binary_sensor.heat_pump_fault`, which disappears from the screen by itself. You can delete the leftover entities `input_text.fault_register` and `input_boolean.clear_fault_register` in Settings → Entities.
 - **The on/off switch no longer overwrites other settings.** `switch.u_energy_on_off` used to write the whole register 0x0000 as 65 (on) or 64 (off). That register also holds the A41, manual frequency, C01, B01 and A45 settings, so on a heat pump where those differ, the old switch changed them too. Now it changes only the on/off bit and writes only when the value really changes. The entity ID is unchanged. If you have used the old switch, check those settings on the heat pump's panel.
-- **Slider ranges follow the communication protocol:** heating 15–50 °C (was up to 55, above the allowed P05 range), hot water 28–60 °C (was up to 55), cooling 7–30 °C (was from 12).
+- **Cooling slider from 7 °C** (was from 12), as in every Power World manual. Heating (15–55 °C) and hot water (28–55 °C) are unchanged. See "Setpoint ranges" below.
 - **Modern Home Assistant syntax** (`triggers:` / `actions:`).
 
 ## Support and maintenance

@@ -1087,7 +1087,7 @@ input_number:
     unit_of_measurement: "\xB0C"
   heating_set_temperature:
     icon: mdi:heat-wave
-    max: 50
+    max: 55
     min: 15
     mode: slider
     name: Heating Temperature
@@ -1095,7 +1095,7 @@ input_number:
     unit_of_measurement: "\xB0C"
   hot_water_set_temperature:
     icon: mdi:shower-head
-    max: 60
+    max: 55
     min: 28
     mode: slider
     name: Hot Water Temperature
