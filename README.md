@@ -163,7 +163,7 @@ The flag registers sometimes read as 0 for a moment. Mode changes are ignored wh
 
 ### Automation names
 
-The automations are named `Ultimate …` for compatibility with earlier installations of this package. The names have no effect on how they work.
+The automations are named `Power World …`. Earlier versions of this package called them `Ultimate …`. For compatibility with those installations, the automation IDs (`ultimate_…`) and the Modbus hub name (`ultimate`) are unchanged. If you upgrade, your existing automation entity IDs stay the same, and only the names shown in the UI change.
 
 ## Upgrading from an earlier version
 

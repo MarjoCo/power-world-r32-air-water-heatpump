@@ -1887,7 +1887,7 @@ template:
 
 automation:
   - id: ultimate_handle_setpoint_temperature_change
-    alias: Ultimate Handle Setpoint(default=None) Temperature Change
+    alias: Power World Handle Setpoint(default=None) Temperature Change
     description: ''
     triggers:
       - trigger: state
@@ -1917,7 +1917,7 @@ automation:
 
 
   - id: ultimate_handle_work_mode_option_change
-    alias: Ultimate Handle Work Mode option change for UI
+    alias: Power World Handle Work Mode option change for UI
     # Variables are computed only after the condition, so an 'unavailable'
     # reading (e.g. during a Modbus reload) cannot break the automation. This only
     # syncs the display; the device is written only on a user change (below).
@@ -1950,13 +1950,13 @@ automation:
 
 
   - id: ultimate_handle_operation_mode_set_to_ui
-    alias: Ultimate Handle operation mode set to UI
+    alias: Power World Handle operation mode set to UI
     # Shows a mode change made on the heat pump's own panel in the UI. Without
     # this it would appear only at the next Home Assistant start.
     #
     # ZERO GUARD: sensor.control_flags_1_map occasionally drops to 0 for a few
     # seconds. Both mode bits then read off and the template below would compute
-    # 'Smart', which would make 'Ultimate Update Operation Mode from UI' write
+    # 'Smart', which would make 'Power World Update Operation Mode from UI' write
     # register 1 and really change the heat pump's mode because of a read error.
     # Values > 0 pass, 0 does not.
     #
@@ -1991,7 +1991,7 @@ automation:
     mode: single
     
   - id: ultimate_heat_pump_error
-    alias: Ultimate Heat pump Error
+    alias: Power World Heat pump Error
     triggers:
       - entity_id:
           - binary_sensor.high_pressure_switch
@@ -2054,8 +2054,8 @@ automation:
     mode: parallel
   
   - id: ultimate_update_vacation_mode_from_control_flags_2_map
-    alias: Ultimate Update Vacation Mode from Control Flags 2 Map
-    # WRITES ONLY ON A USER CHANGE. Syncing from the device (Ultimate Sync
+    alias: Power World Update Vacation Mode from Control Flags 2 Map
+    # WRITES ONLY ON A USER CHANGE. Syncing from the device (Power World Sync
     # Vacation Mode Input Boolean) changes the boolean in an automation context,
     # so it never writes. The flag register must also have been read as a number.
     triggers:
@@ -2120,7 +2120,7 @@ automation:
     mode: single
   
   - id: ultimate_critical_failure_notification
-    alias: Ultimate Critical failure Notification
+    alias: Power World Critical failure Notification
     triggers:
       - entity_id:
           - binary_sensor.er03_water_flow_failure
@@ -2159,7 +2159,7 @@ automation:
           title: Critical Alert!
     mode: single  
   - id: ultimate_update_operation_mode_from_ui
-    alias: Ultimate Update Operation Mode from UI
+    alias: Power World Update Operation Mode from UI
     # WRITES ONLY ON A USER CHANGE. The start-up sync could set 'Smart' before
     # the flag register had been read; if the register was read right after, this
     # would have written a new value and switched off the device's silent mode.
@@ -2214,7 +2214,7 @@ automation:
                   value: "{{ new_value }}"
 
   - id: Ultimate_sync_vacation_mode_input_boolean
-    alias: Ultimate Sync Vacation Mode Input Boolean
+    alias: Power World Sync Vacation Mode Input Boolean
     # Only when the device state has been read (on/off). Otherwise an
     # 'unavailable' reading would fall to the default branch and turn the
     # boolean off.
@@ -2243,7 +2243,7 @@ automation:
     mode: single
 
   - id: ultimate_update_ui_on_startup
-    alias: Ultimate Update UI on Startup
+    alias: Power World Update UI on Startup
     triggers:
       - trigger: homeassistant
         event: start
@@ -2304,7 +2304,7 @@ automation:
                     value: "{{ states('sensor.' ~ repeat.item) }}"
     mode: single
   - id: ultimate_update_modbus_value
-    alias: Ultimate Update modbus value
+    alias: Power World Update modbus value
     # WRITES ONLY ON A USER CHANGE: the heat pump's memory chip wears with every
     # write. Conditions: a person changed the control in the UI (context.user_id),
     # so automations that sync the device to the display never write; the
