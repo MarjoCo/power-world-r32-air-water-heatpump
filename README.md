@@ -22,6 +22,16 @@ Everything except the dashboard is in one file: `packages/power_world_r32.yaml`.
 
 ## Installation
 
+### 0. Download the files
+
+You do not need git. On this page, click the green **Code** button → **Download ZIP** and unpack it on your computer. You need three files from it:
+
+- `packages/power_world_r32.yaml`
+- `dashboards/power_world_r32_dashboard.yaml`
+- `www/power_world_r32/heat_pump.png`
+
+Copy them to Home Assistant's configuration folder (the one with `configuration.yaml`) with the **File editor** or **Samba share** add-on, or with **Studio Code Server**. The steps below say where each file goes.
+
 ### 1. Set up the RS485 converter
 
 Configure the converter's serial side for the heat pump:
@@ -154,6 +164,16 @@ Changes in this version:
 - **Fault notifications are sent once.** Er03, Er06 and anti-freeze used to trigger both the normal and the critical notification. The water-flow switch no longer sends a separate notification about 10 s before Er03.
 - **The fault log text and its clear button are gone.** The log stopped recording after about five entries, because a text helper holds at most 255 characters. They are replaced by `binary_sensor.heat_pump_fault`, which disappears from the screen by itself. You can delete the leftover entities `input_text.fault_register` and `input_boolean.clear_fault_register` in Settings → Entities.
 - **Modern Home Assistant syntax** (`triggers:` / `actions:`).
+
+## Support and maintenance
+
+This package is shared as is, because it works on my own heat pump. **It is not actively maintained, and I cannot promise to answer questions or fix problems.** If something needs changing, you are welcome to fork the repository and change it yourself. The MIT license allows that.
+
+You use the package at your own risk. Check that the settings suit your installation before you change anything on the heat pump.
+
+## License
+
+[MIT](LICENSE)
 
 ## Files
 
