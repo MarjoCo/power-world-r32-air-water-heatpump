@@ -1887,7 +1887,7 @@ template:
 
 automation:
   - id: ultimate_handle_setpoint_temperature_change
-    alias: Power World Handle Setpoint(default=None) Temperature Change
+    alias: Power World Handle Setpoint Temperature Change
     description: ''
     triggers:
       - trigger: state
