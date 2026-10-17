@@ -128,15 +128,29 @@ Each fault code has its own `binary_sensor` with `device_class: problem`. `binar
 
 A notification is sent when a fault has stayed on for 6 seconds. Faults during the first minute after a Home Assistant restart are ignored, because readings are not reliable yet. That check uses `sensor.last_boot` from the System Monitor integration if you have it. Without it, the check simply passes.
 
-### Linkage switch, EVU signal and SG signal need an external switch
+### Linkage switch, EVU signal and SG signal need external wiring
 
-`binary_sensor.linkage_switch`, `binary_sensor.evu_signal` and `binary_sensor.sg_signal` read the heat pump's external control inputs. They show something meaningful **only if you have wired an external switch or contact to those terminals** on the heat pump's control board:
+`binary_sensor.linkage_switch`, `binary_sensor.evu_signal` and `binary_sensor.sg_signal` show the state of input terminals on the heat pump's main board. They mean something **only if you have wired a contact to those terminals**. Nothing needs to be set in Home Assistant.
 
-- **Linkage switch:** an external on/off permission, for example from a room thermostat or a relay controlled by Home Assistant.
-- **EVU signal:** the utility's blocking signal.
-- **SG signal:** the Smart Grid signal.
+**Linkage switch** (input IN4 on the main board; the controller manual calls it "Switch on-off function required for AC"):
 
-Without anything connected, these inputs show a fixed default value that means nothing. Ignore them, or remove them from your dashboard. See the heat pump's installation manual for the terminals and how to wire them.
+- When the contact is closed (short-connected), heating and cooling are allowed. The heat pump's own controller still decides when the compressor runs.
+- When the contact is open, the heat pump does not heat or cool.
+- You can wire a relay here, for example a Shelly, to give or remove heating permission from Home Assistant.
+- The user manual says the heat pump must not be switched on and off more than 4 times within one hour.
+
+**EVU signal and SG signal** are used only by the heat pump's Smart Grid function. It is off by default (parameter S01 = 0). When S01 = 1, the two signals select the operating state, according to the user manual:
+
+| SG | EVU | Operating state |
+|---|---|---|
+| ON | ON | Increased operation: hot water has priority, setpoint 70 °C, tank heater on below 69 °C |
+| OFF | ON | Increased operation: hot water has priority with the normal setpoint |
+| ON | OFF | Normal operation |
+| OFF | OFF | Decreased operation: no hot water, tank heater and disinfection off; heating/cooling runs at most "SG operating time" (S2), then the unit stops |
+
+The manual adds: *"To use this function, the auxiliary electric heater for DHW tank must be installed. Otherwise, leave the EVU interface disconnected."*
+
+If nothing is wired to these terminals, or S01 = 0, the three sensors show a fixed value that means nothing. Ignore them or remove them from your dashboard.
 
 ### Controls
 
