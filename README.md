@@ -24,7 +24,7 @@ Everything except the dashboard is in one file: `packages/power_world_r32.yaml`.
 
 ### 0. Download the files
 
-You do not need git. On this page, click the green **Code** button → **Download ZIP** and unpack it on your computer. You need three files from it:
+You do not need git. Open the [latest release](https://github.com/MarjoCo/power-world-r32-air-water-heatpump/releases/latest), download **power-world-r32-v….zip** under *Assets* and unpack it on your computer. You need three files from it:
 
 - `packages/power_world_r32.yaml`
 - `dashboards/power_world_r32_dashboard.yaml`
