@@ -126,7 +126,7 @@ If the values are `unavailable`:
 
 Each fault code has its own `binary_sensor` with `device_class: problem`. `binary_sensor.heat_pump_fault` is `on` while any fault is active. Its attribute `latest` holds the name of the fault that came on most recently, with `(+N)` added when several are active. The dashboard shows that text only while a fault is active, and it disappears by itself when the fault clears.
 
-A notification is sent when a fault has stayed on for 6 seconds. Faults during the first minute after a Home Assistant restart are ignored, because readings are not reliable yet. That check uses `sensor.last_boot` from the System Monitor integration if you have it. Without it, the check simply passes.
+A notification is sent when a fault has stayed on for 6 seconds. A fault that is already active when Home Assistant starts is reported once, after the first reading. The package no longer reads `sensor.last_boot`; System Monitor is not needed.
 
 ### Linkage switch, EVU signal and SG signal need external wiring
 

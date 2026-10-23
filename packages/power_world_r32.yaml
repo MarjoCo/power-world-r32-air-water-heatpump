@@ -2068,10 +2068,9 @@ automation:
           minutes: 0
           seconds: 6
     conditions:
-      - condition: template
-        value_template: >
-          {{ (as_timestamp(now()) - as_timestamp(states('sensor.last_boot'), 0)) > 60 }}
-
+      # No start-up delay: a fault that is active when Home Assistant starts is
+      # reported once after the first read (the sensors go off -> on). A delay
+      # would hide such a fault for good, as no new off -> on follows.
       - condition: template
         value_template: >
           {{ trigger.to_state is not none
@@ -2168,10 +2167,9 @@ automation:
           minutes: 0
           seconds: 6
     conditions:
-      - condition: template
-        value_template: >
-          {{ (as_timestamp(now()) - as_timestamp(states('sensor.last_boot'), 0)) > 60 }}
-
+      # No start-up delay: a fault that is active when Home Assistant starts is
+      # reported once after the first read (the sensors go off -> on). A delay
+      # would hide such a fault for good, as no new off -> on follows.
       - condition: template
         value_template: >
           {{ trigger.to_state is not none
