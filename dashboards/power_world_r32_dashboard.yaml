@@ -311,6 +311,10 @@ views:
     title: Overview
   - title: Details
     cards:
+      - type: markdown
+        text_only: true
+        content: >-
+          {% set on = ['binary_sensor.level_1_anti_freeze', 'binary_sensor.secondary_anti_freeze', 'binary_sensor.er03_water_flow_failure', 'binary_sensor.er05_high_pressure_fault', 'binary_sensor.er06_low_pressure_fault', 'binary_sensor.er10_frequency_conversion_module_communication_failure', 'binary_sensor.er12_exhaust_temp_too_high', 'binary_sensor.er14_water_tank_temp_sensor_fault', 'binary_sensor.er15_water_inlet_temp_sensor_fault', 'binary_sensor.er16_evaporator_coil_temp_sensor_fault', 'binary_sensor.er18_exhaust_temp_fault', 'binary_sensor.er21_ambiet_temp_sensor_fault', 'binary_sensor.er23_cooling_outlet_water_temp_supercooling_protection', 'binary_sensor.er27_outlet_water_temp_sensor_fault', 'binary_sensor.er29_return_gas_temp_sensor_fault', 'binary_sensor.er32_overheating_water_outlet', 'binary_sensor.er33_coil_temp_too_high', 'binary_sensor.er42_cooling_coil_temp_sensor_failure', 'binary_sensor.er64_dc_fan_1_fault', 'binary_sensor.er69_too_low_pressure_protection', 'binary_sensor.ipm_overcurrent', 'binary_sensor.press_syncronization_abnormality', 'binary_sensor.press_output_phase_loss', 'binary_sensor.dc_bus_voltage_is_low', 'binary_sensor.dc_bus_voltage_is_high', 'binary_sensor.the_heat_sink_temperature_is_too_high', 'binary_sensor.heat_sink_temperature_failure', 'binary_sensor.communication_failure', 'binary_sensor.ac_input_phase_loss', 'binary_sensor.ac_input_overcurrent', 'binary_sensor.ac_input_voltage_is_low', 'binary_sensor.high_voltage_fault', 'binary_sensor.ipm_temperature_is_too_high', 'binary_sensor.the_peak_current_of_the_press_is_too_high', 'binary_sensor.pfc_module_over_temperature'] | select('is_state', 'on') | list %}{% if on %}{% for e in on %}<ha-alert alert-type="error">Heat pump: {{ state_attr(e, 'friendly_name') }}</ha-alert>{% endfor %}{% else %}<ha-alert alert-type="success">No heat pump faults</ha-alert>{% endif %}
       - type: entities
         entities:
           - entity: sensor.ambient_temperature
